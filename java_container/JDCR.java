@@ -17,7 +17,7 @@ public class JDCR {
 	private static final JavaCompiler jCompiler = ToolProvider.getSystemJavaCompiler(); // compiler
 	private static ArrayList<ArrayList<String>> codeFiles = new ArrayList<ArrayList<String>>();//ArrayList containing ArrayLists of each student's project files
 		
-	public static void main(final String[] args) {
+	public static void main(String[] args) {
 		//Create an ArrayList of each project
 		compile(Paths.get(masterPath));
 		//attempt to compile and run each project
