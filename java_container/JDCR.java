@@ -12,13 +12,13 @@ import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 //Java Dynamic Compile and Run
 public class JDCR {
-	private static final String masterPath = "C:\\Users\\ostrc\\Desktop\\College\\CSCD 300\\Root";//Path to Root Folder
+	private static final String masterPath = "C:\\Users\\Ocean\\Desktop\\College\\CSCD 300\\Root";//Path to Root Folder
+	private static final String root = "Root";//Name of Root Folder
 	private static final JavaCompiler jCompiler = ToolProvider.getSystemJavaCompiler(); // compiler
 	private static ArrayList<ArrayList<String>> codeFiles = new ArrayList<ArrayList<String>>();//ArrayList containing ArrayLists of each student's project files
-	private static final String root = "Root";//Name of Root Folder
-	
+		
 	public static void main(String[] args) {
-		//Create the project files
+		//Create an ArrayList of each project
 		compile(Paths.get(masterPath));
 		//attempt to compile and run each project
 		for(ArrayList<String> a: codeFiles) {
@@ -44,27 +44,41 @@ public class JDCR {
         	}
         }
         //runs compiled code
-        String[] ar = new String[4];
-        ar[0]="java";
-        ar[1] = "-cp";
-        ar[2] = f.get(0);
+        String[] args2 = new String[4];
+        //create the default arguments to pass to the interpreter
+        args2[0]="java";
+        args2[1] = "-cp";
+        args2[2] = f.get(0);
         for(int i = 2;i<args.length;i++) {
-        	ar[3]=args[i];
+        	//test each java file for a main. If it has one, will execute
+        	args2[3]=args[i];
         	try {
-            	Process proc = Runtime.getRuntime().exec(ar);
+        		System.out.println();
+            	System.out.println("Attempting to run: "+args2[3].substring(args2[3].lastIndexOf("\\")+1,args2[3].length()));
+            	Process proc = Runtime.getRuntime().exec(args2);
             	BufferedReader out = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             	BufferedReader err = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
             	String line = null;
-            	System.out.println();
-            	System.out.println("Attempting to run: "+ar[3].substring(ar[3].lastIndexOf("\\")+1,ar[3].length()));
+            	boolean flag = true;
                 while ((line = out.readLine()) != null)
                 {
+                	while(flag) { 
+                		System.out.println("File Output");
+                		System.out.println();
+                		flag = false;
+                	}
                    System.out.println(line);
                 }
+                flag = true;
                 while ((line = err.readLine()) != null)
                 {
+                	while(flag) { 
+                		System.out.println("File Error Output");
+                		System.out.println();
+                		flag = false;
+                	}
                 	if(!line.contains("can't find main(String[]) method in class"))System.out.println(line);
-                	else if(line.contains("can't find main(String[]) method in class"))System.out.println("No Main Method: "+ar[3].substring(ar[3].lastIndexOf("\\")+1,ar[3].length()));
+                	else if(line.contains("can't find main(String[]) method in class"))System.out.println("No Main Method: "+args2[3].substring(args2[3].lastIndexOf("\\")+1,args2[3].length()));
                    
                 }
             	proc.destroy();
@@ -75,6 +89,7 @@ public class JDCR {
             }
     
         }
+        System.out.println();
 	    		
 	}
 /*
@@ -82,7 +97,7 @@ Creates a header String from pathName that is the path .\root_folder_name\projec
 e.g pathName = C:\\Users\\ostrc\\Desktop\\College\\CSCD 300\\Root\\Test1\\Test.java
 String header = C:\\Users\\ostrc\\Desktop\\College\\CSCD 300\\Root\\Test1
 It is vitally important that the project folders are stored directly under root otherwise code will
-not compile or run
+not compile and/or run
 		
 Then checks if any arrayList in codeFiles has the same header, headers are always
 the first entry in the ArrayLists in codeFiles
@@ -98,7 +113,7 @@ ArrayList.get(3) = pathName
 		 
 For each ArrayList in codeFiles, indexes 0,1, and 2 are reserved and must not be assigned to anything new
 		 
-TO-DO: Need to handle potential duplicate file names, perhaps when the files are submitted?, e.g. SmithJLab1 
+TO-DO: Need to handle potential duplicate file names, perhaps when the files are submitted?, e.g. SmithJLab1, 2SmithJLab1
 */
 	public static void editCodeFiles(String pathName) {
 		String[] temp = pathName.split("\\\\");//Split path name into parts for parsing
