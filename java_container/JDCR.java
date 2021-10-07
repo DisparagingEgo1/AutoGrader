@@ -11,8 +11,9 @@ import java.util.ArrayList;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 //Java Dynamic Compile and Run
+//currently run a junit on a project and capture the output, make program more modular and initiate from the command line
 public class JDCR {
-	private static final String masterPath = "C:\\Users\\Ocean\\Desktop\\College\\CSCD 300\\Root";//Path to Root Folder
+	private static final String masterPath = "C:\\Users\\ostrc\\Desktop\\College\\CSCD 300\\Root";//Path to Root Folder
 	private static final String root = "Root";//Name of Root Folder
 	private static final JavaCompiler jCompiler = ToolProvider.getSystemJavaCompiler(); // compiler
 	private static ArrayList<ArrayList<String>> codeFiles = new ArrayList<ArrayList<String>>();//ArrayList containing ArrayLists of each student's project files
