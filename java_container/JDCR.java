@@ -9,9 +9,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 //Java Dynamic Compile and Run
+//Must add your jdk/bin to the Path variable for your system if javap does not work.
 //currently run a junit on a project and capture the output, make program more modular and initiate from the command line
 public class JDCR {
-	private static String masterPath = "C:\\Users\\ostrc\\Desktop\\College\\CSCD 300\\Root";//Path to Root Folder
+	private static String masterPath = "C:\\Users\\Ocean\\Desktop\\College\\CSCD 300\\Root";//Path to Root Folder
 	private static String root;//Name of Root Folder
 	private static ArrayList<ArrayList<String>> projectFiles = new ArrayList<ArrayList<String>>();//ArrayList containing ArrayLists of each student's project files
 	private static final boolean DEBUG = true;
@@ -33,35 +34,70 @@ public class JDCR {
 			compileAndRun(a);
 		}
 	}
-	private static void execute(String[]args) throws IOException {
+	//isExecutable, output function for output and error
+	private static boolean isExecutable(String classFilePath)throws IOException {
+		classFilePath = classFilePath.replaceAll(".java", ".class");
+		String[] args = {"javap",classFilePath};
+		Process proc = Runtime.getRuntime().exec(args);
+    	BufferedReader out = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+    	BufferedReader err = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+    	String line = null;
+    	while((line = out.readLine()) != null) {
+    		if(line.contains("public static void main")) {
+    			proc.destroy();
+    			return true;
+    		}
+    	}
+    	while ((line = err.readLine()) != null) {
+    		System.out.println(line);
+    	}
+    	proc.destroy();
+		return false;
+	}
+	private static boolean execute(String[]args) throws IOException {
 		Process proc = Runtime.getRuntime().exec(args);
     	BufferedReader out = new BufferedReader(new InputStreamReader(proc.getInputStream()));
     	BufferedReader err = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
     	String line = null;
     	boolean flag = true;
-        while ((line = out.readLine()) != null)
-        {
-        	while(flag) { 
-        		System.out.println("File Output");
-        		System.out.println();
-        		flag = false;
-        	}
-           System.out.println(line);
-        }
-        flag = true;
-        while ((line = err.readLine()) != null)
-        {
-        	while(flag) { 
-        		System.out.println("File Error Output");
-        		System.out.println();
-        		flag = false;
-        	}
-        	if(line.contains("Cannot run program \"-cp\""));
-        	else if(line.contains("can't find main(String[]) method in class"))System.out.println("No Main Method: "+args[3].substring(args[3].lastIndexOf("\\")+1,args[3].length()));
-        	else System.out.println(line);
-           
-        }
+    	switch(args[0]) {
+    		case "javac":
+    			if((line = err.readLine()) != null) {
+    				String[]lineArray = line.split("\\\\");
+    				System.out.println("File: "+lineArray[lineArray.length -1].substring(0,lineArray[lineArray.length -1].indexOf(":"))+" did not compile.");
+    				System.out.println();
+    				return false;
+    			}
+    			else {
+    				System.out.println("Project Compiled Successfully.");
+    				System.out.println();
+    				return true;
+    			}
+    		case "java":
+    			while ((line = out.readLine()) != null)
+    	        {
+    	        	while(flag) { 
+    	        		System.out.println("File Output");
+    	        		System.out.println();
+    	        		flag = false;
+    	        	}
+    	           System.out.println(line);
+    	        }
+    	        flag = true;
+    	        while ((line = err.readLine()) != null)
+    	        {
+    	        	while(flag) { 
+    	        		System.out.println("File Error Output");
+    	        		System.out.println();
+    	        		flag = false;
+    	        	}
+    	        	System.out.println(line);
+    	           
+    	        }
+    			break;	
+    	} 
     	proc.destroy();
+    	return true;
 	}
 	//Takes each ArrayList from projectFiles and attempts to compile and run it
 	private static void compileAndRun(ArrayList<String>f) {
@@ -71,40 +107,28 @@ public class JDCR {
 	    	if(i == 0)args[i] = "javac";
 	    	else args[i]=f.get(i);
 	    }
-	    //compile the project
 	    try {
-	    	execute(args);
+	    	//compile the project
+	        //runs the project
+	        String[] args2 = new String[4];
+	        //create the default arguments to pass to the interpreter
+	        args2[0]="java";
+	        args2[1] = "-cp";
+	        args2[2] = f.get(0);
+	        for(int i = 3;i<args.length;i++) {
+	        	//test each java file to see if it compiled and has a main. If it has one, will execute.
+	        	if(execute(args) && isExecutable(args[i])) {
+	        		System.out.println("Testing if file "+args[i].substring(args[i].lastIndexOf("\\")+1,args[i].length())+" compiled and has a main: "+isExecutable(args[i]));
+		        	args2[3]=args[i];
+		        	System.out.println();
+		            System.out.println("Attempting to run: "+args2[3].substring(args2[3].lastIndexOf("\\")+1,args2[3].length()));
+		            execute(args2);
+		            System.out.println();
+	        	}
+	        }
 	    }
-	    catch(Exception e) {
+        catch(Exception e) {
         	System.out.println(e.getMessage());
-        }
-        //This will be used to print out files that compiled or didn't compile. Currently prints as if all
-        //files compiled
-        for(int i = 0; i < f.size();i++) {
-        	if(i < 3);
-        	else {
-        	System.out.println("Compiled: "+f.get(i));
-        	}
-        }
-        //runs code
-        String[] args2 = new String[4];
-        //create the default arguments to pass to the interpreter
-        args2[0]="java";
-        args2[1] = "-cp";
-        args2[2] = f.get(0);
-        for(int i = 3;i<args.length;i++) {
-        	//test each java file for a main. If it has one, will execute. Need to use javap to determine main
-        	args2[3]=args[i];
-        	try {
-        		System.out.println();
-            	System.out.println("Attempting to run: "+args2[3].substring(args2[3].lastIndexOf("\\")+1,args2[3].length()));
-            	execute(args2);
-            	
-            }
-            catch(Exception e) {
-            	System.out.println(e.getMessage());
-            }
-    
         }
         System.out.println();
 	    		
@@ -113,7 +137,7 @@ public class JDCR {
 Creates a header String from pathName that is the path .\root_folder_name\project_folder_name
 e.g pathName = C:\\Users\\ostrc\\Desktop\\College\\CSCD 300\\Root\\Test1\\Test.java
 String header = C:\\Users\\ostrc\\Desktop\\College\\CSCD 300\\Root\\Test1
-It is vitally important that the project folders are stored directly under root otherwise code will
+It is vitally important that the project folders are stored directly under root otherwise code may
 not compile and/or run
 		
 Then checks if any arrayList in projectFiles has the same header, headers are always
@@ -129,6 +153,7 @@ ArrayList.get(2) = masterPath
 ArrayList.get(3) = pathName
 		 
 For each ArrayList in projectFiles, indexes 0,1, and 2 are reserved and must not be assigned to anything new
+Indices 3 and on are absolute paths to java files.
 		 
 TO-DO: Need to handle potential duplicate file names, perhaps when the files are submitted?, e.g. SmithJLab1, 2SmithJLab1
 */
@@ -137,23 +162,28 @@ TO-DO: Need to handle potential duplicate file names, perhaps when the files are
 		String header = "";
 		//create the source file path for each project
 		for(int i = 0; !(i != 0 && temp[i-1].equals(root));i++) {
+			
 			if( temp[i].equals(root) && i +1 <temp.length) {
 				header = header.concat(temp[i]+"\\"+temp[i+1]);
 			}
+			
 			else if(temp[i].equals(root)) header = header.concat(temp[i]);
+			
 			else header = header.concat(temp[i]+"\\");
 		}
 		//check if this file is part of any other project
-		for(int i = 0; !(i != 0 && (i <projectFiles.size() || projectFiles.get(i-1).get(0).equals(header)));i++) {
+		for(int i = 0; !(i != 0 && projectFiles.get(i-1).get(0).equals(header));i++) {
+			
 			if(projectFiles.size() != 0 && projectFiles.get(i).get(0).equals(header)) {
 				projectFiles.get(i).add(pathName);
 			}
+			//if projectFiles is empty or we are at the end of it without a match
 			else if(projectFiles.size() == 0 || i == projectFiles.size()-1) {
-				projectFiles.add(new ArrayList<String>());
-				projectFiles.get(projectFiles.size()-1).add(header);
-				projectFiles.get(projectFiles.size()-1).add("-cp");
-				projectFiles.get(projectFiles.size()-1).add(masterPath);
-				projectFiles.get(projectFiles.size()-1).add(pathName);	
+				projectFiles.add(i,new ArrayList<String>());
+				projectFiles.get(i).add(header);
+				projectFiles.get(i).add("-cp");
+				projectFiles.get(i).add(masterPath);
+				projectFiles.get(i).add(pathName);	
 			}
 		}
 			
