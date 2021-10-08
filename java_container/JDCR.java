@@ -135,7 +135,7 @@ TO-DO: Need to handle potential duplicate file names, perhaps when the files are
 	private static void editprojectFiles(String pathName) {
 		String[] temp = pathName.split("\\\\");//Split path name into parts for parsing
 		String header = "";
-		//create the source file path
+		//create the source file path for each project
 		for(int i = 0; !(i != 0 && temp[i-1].equals(root));i++) {
 			if( temp[i].equals(root) && i +1 <temp.length) {
 				header = header.concat(temp[i]+"\\"+temp[i+1]);
