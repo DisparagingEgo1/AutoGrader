@@ -15,10 +15,11 @@ public class JDCR {
 	private static String masterPath = "C:\\Users\\Ocean\\Desktop\\College\\CSCD 300\\Root";//Path to Root Folder
 	private static String root;//Name of Root Folder
 	private static ArrayList<ArrayList<String>> projectFiles = new ArrayList<ArrayList<String>>();//ArrayList containing ArrayLists of each student's project files
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = true;//disable needing command line arguments for testing
 		
+	@SuppressWarnings("unused")
 	public static void main(String[] args) {
-		//Create an ArrayList of each project
+		//Set the path to the root or use the default otherwise
 		if(args.length == 0 && !DEBUG) {
 			System.out.println("No path specified for project folders.");
 			System.exit(0);
@@ -34,7 +35,10 @@ public class JDCR {
 			compileAndRun(a);
 		}
 	}
-	//isExecutable, output function for output and error
+	/*
+	 * Determines if a java.class file has a main method in it. If the system doesn't recognize
+	 * javap then it means the jdk/bin directory is not in your Path variable
+	 */
 	private static boolean isExecutable(String classFilePath)throws IOException {
 		classFilePath = classFilePath.replaceAll(".java", ".class");
 		String[] args = {"javap",classFilePath};
@@ -44,6 +48,8 @@ public class JDCR {
     	String line = null;
     	while((line = out.readLine()) != null) {
     		if(line.contains("public static void main")) {
+    			out.close();
+    			err.close();
     			proc.destroy();
     			return true;
     		}
@@ -51,10 +57,21 @@ public class JDCR {
     	while ((line = err.readLine()) != null) {
     		System.out.println(line);
     	}
+    	out.close();
+    	err.close();
     	proc.destroy();
 		return false;
 	}
+	/*
+	 * Compiles and Executes java files
+	 * String[]args will either contain the arguments for the compiler and args[0] will be javac or
+	 * the arguments for the interpreter in which case args[0] will be java. Any projects that reach
+	 * the interpreter will not contain any compile time exceptions but may crash with runtime exceptions
+	 * 
+	 * Returns true if no errors were encountered or false otherwise
+	 */
 	private static boolean execute(String[]args) throws IOException {
+		//execute either a compile or execution depending on args[0]
 		Process proc = Runtime.getRuntime().exec(args);
     	BufferedReader out = new BufferedReader(new InputStreamReader(proc.getInputStream()));
     	BufferedReader err = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
@@ -62,15 +79,21 @@ public class JDCR {
     	boolean flag = true;
     	switch(args[0]) {
     		case "javac":
+    			//If not null, means the program failed to compile
     			if((line = err.readLine()) != null) {
     				String[]lineArray = line.split("\\\\");
     				System.out.println("File: "+lineArray[lineArray.length -1].substring(0,lineArray[lineArray.length -1].indexOf(":"))+" did not compile.");
-    				System.out.println();
+    				out.close();
+    				err.close();
+    				proc.destroy();
     				return false;
     			}
+    			//compiled successfully
     			else {
     				System.out.println("Project Compiled Successfully.");
-    				System.out.println();
+    				out.close();
+    				err.close();
+    				proc.destroy();
     				return true;
     			}
     		case "java":
@@ -78,7 +101,7 @@ public class JDCR {
     	        {
     	        	while(flag) { 
     	        		System.out.println("File Output");
-    	        		System.out.println();
+    	        		System.out.println("---------------------------------------------------------------------------------------------");
     	        		flag = false;
     	        	}
     	           System.out.println(line);
@@ -88,7 +111,7 @@ public class JDCR {
     	        {
     	        	while(flag) { 
     	        		System.out.println("File Error Output");
-    	        		System.out.println();
+    	        		System.out.println("---------------------------------------------------------------------------------------------");
     	        		flag = false;
     	        	}
     	        	System.out.println(line);
@@ -96,6 +119,8 @@ public class JDCR {
     	        }
     			break;	
     	} 
+    	out.close();
+    	err.close();
     	proc.destroy();
     	return true;
 	}
@@ -108,29 +133,29 @@ public class JDCR {
 	    	else args[i]=f.get(i);
 	    }
 	    try {
-	    	//compile the project
-	        //runs the project
+	    	//create the default arguments to pass to the interpreter
 	        String[] args2 = new String[4];
-	        //create the default arguments to pass to the interpreter
 	        args2[0]="java";
 	        args2[1] = "-cp";
 	        args2[2] = f.get(0);
-	        for(int i = 3;i<args.length;i++) {
-	        	//test each java file to see if it compiled and has a main. If it has one, will execute.
-	        	if(execute(args) && isExecutable(args[i])) {
-	        		System.out.println("Testing if file "+args[i].substring(args[i].lastIndexOf("\\")+1,args[i].length())+" compiled and has a main: "+isExecutable(args[i]));
-		        	args2[3]=args[i];
-		        	System.out.println();
-		            System.out.println("Attempting to run: "+args2[3].substring(args2[3].lastIndexOf("\\")+1,args2[3].length()));
-		            execute(args2);
-		            System.out.println();
-	        	}
+	        //test to see if the project will compile
+	        if(execute(args)) {
+		        for(int i = 3;i<args.length;i++) {
+		        	//test each java file to see if it has a main. If it has one, will execute.
+		        	if(isExecutable(args[i])) {
+			        	args2[3]=args[i];
+			        	System.out.println();
+			            System.out.println("Running: "+args2[3].substring(args2[3].lastIndexOf("\\")+1,args2[3].length()));
+			            System.out.println();
+			            execute(args2);
+		        	}
+		        }
 	        }
 	    }
         catch(Exception e) {
         	System.out.println(e.getMessage());
         }
-        System.out.println();
+	    System.out.println("---------------------------------------------------------------------------------------------");
 	    		
 	}
 /*
