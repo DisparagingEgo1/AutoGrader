@@ -1,0 +1,12 @@
+Inital Installation
+Download the junit jar from https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/
+Make sure it is the standalone version
+Place it wherever you want junit installed, make a note of the junit.jar files name and copy the directory to it
+The absolute path to it must be used when compiling Junit test files
+
+javac -classpath <path to project folder under root>;<path to junit.jar> TestHello.java Hello.java
+
+TestHello is our testing file
+
+to run a test from command line use
+java -jar <path to junit.jar> -cp <classpath to Test file> -c <Testfile name>

@@ -10,30 +10,58 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 //Java Dynamic Compile and Run
 //Must add your jdk/bin to the Path variable for your system if javap does not work.
-//currently run a junit on a project and capture the output, make program more modular and initiate from the command line
+//TO-DO: Implement Junit Testing and write project output to files
 public class JDCR {
-	private static String masterPath = "C:\\Users\\Ocean\\Desktop\\College\\CSCD 300\\Root";//Path to Root Folder
+	private static String masterPath;//Path to Root Folder
 	private static String root;//Name of Root Folder
+	private static String jUnitJarPath;
+	private static String jUnitTestName;
 	private static ArrayList<ArrayList<String>> projectFiles = new ArrayList<ArrayList<String>>();//ArrayList containing ArrayLists of each student's project files
 	private static final boolean DEBUG = true;//disable needing command line arguments for testing
 		
-	@SuppressWarnings("unused")
+	
 	public static void main(String[] args) {
 		//Set the path to the root or use the default otherwise
-		if(args.length == 0 && !DEBUG) {
-			System.out.println("No path specified for project folders.");
-			System.exit(0);
-		}
-		else{
-			masterPath = args[0];
-		}
-		String[] rt = masterPath.split("\\\\");
-		root = rt[rt.length-1];
+		parseArgs(args);
 		getProjectFiles(Paths.get(masterPath));
 		//attempt to compile and run each project
 		for(ArrayList<String> a: projectFiles) {
 			compileAndRun(a);
 		}
+	}
+	//Parses arguments passed into it from the command line
+	private static void parseArgs(String[] args) {
+		if(DEBUG) {
+			masterPath = "C:\\Users\\Ocean\\Desktop\\College\\CSCD 300\\Root";//Default Root Path
+			jUnitJarPath = "";
+			jUnitTestName = "";
+		}
+		else {
+			if(args.length == 0 || args.length == 2 || args[0].equals("--help")) {
+				printHelp();
+				System.exit(0);
+			}
+			else if(args.length == 1) {
+				masterPath = args[0];
+				jUnitJarPath = "";
+				jUnitTestName = "";
+			}
+			else {
+				masterPath = args[0];
+				jUnitJarPath = args[1];
+				jUnitTestName = args[2];
+			}
+		}
+		String[] rt = masterPath.split("\\\\");
+		root = rt[rt.length-1];
+	}
+	//Displays Command Line Help
+	private static void printHelp() {
+		System.out.println();
+		System.out.println("JDCR <path_to_root_directory_for_projects> optional <path_to_junit.jar> <name of Testing File>");
+		System.out.println();
+		System.out.println("If no path to junit.jar or a name of a testing file is provided, will just execute projects in the root directory");
+		System.out.println();
 	}
 	/*
 	 * Determines if a java.class file has a main method in it. If the system doesn't recognize
