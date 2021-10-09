@@ -1,12 +1,14 @@
-package java_container;
+package JContainer;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.CopyOption;
 import java.nio.file.DirectoryIteratorException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 //Java Dynamic Compile and Run
 //Must add your jdk/bin to the Path variable for your system if javap does not work.
@@ -14,28 +16,77 @@ import java.util.ArrayList;
 public class JDCR {
 	private static String masterPath;//Path to Root Folder
 	private static String root;//Name of Root Folder
-	private static String jUnitJarPath;
-	private static String jUnitTestName;
+	private static String jUnitJarPath;//path to junit.jar
+	private static String jUnitTestPath;//path for junit testing file that will be run this session
 	private static ArrayList<ArrayList<String>> projectFiles = new ArrayList<ArrayList<String>>();//ArrayList containing ArrayLists of each student's project files
-	private static final boolean DEBUG = true;//disable needing command line arguments for testing
+	private static final boolean DEBUG = false;//disable needing command line arguments for testing
+	private static boolean TESTING = false;
 		
 	
-	public static void main(String[] args) {
-		//Set the path to the root or use the default otherwise
+	public static void main(String[] args)throws Exception {
+		//Setup
 		parseArgs(args);
 		getProjectFiles(Paths.get(masterPath));
 		//attempt to compile and run each project
 		for(ArrayList<String> a: projectFiles) {
-			compileAndRun(a);
+			if(TESTING) {
+				moveTestFile(a,1);
+				compileAndRun(a);
+				moveTestFile(a,2);
+			}
+			else {
+				compileAndRun(a);
+			}
 		}
 	}
-	//Parses arguments passed into it from the command line
-	private static void parseArgs(String[] args) {
-		if(DEBUG) {
-			masterPath = "C:\\Users\\Ocean\\Desktop\\College\\CSCD 300\\Root";//Default Root Path
-			jUnitJarPath = "";
-			jUnitTestName = "";
+	/*
+	 * If TESTING is true then this will move the testing file stored at jUnitTestPath into each
+	 * project folder and then return it after the test is complete.
+	 */
+	private static void moveTestFile(ArrayList<String> project,int flag) throws IOException {
+		String[] rt = jUnitTestPath.split("\\\\");
+		if(flag == 1) {
+			project.add((Files.move(Paths.get(jUnitTestPath),Paths.get(project.get(0)+"\\\\"+rt[rt.length-1]))).toString());
+			System.out.println();
 		}
+		else {
+			try {
+				Files.delete(Paths.get((project.get(0)+"\\\\"+rt[rt.length-1]).replace(".java", ".class")));
+			}
+			catch(Exception e){
+				
+			}
+			project.remove(project.size()-1);
+			Files.move(Paths.get(project.get(0)+"\\\\"+rt[rt.length-1]),Paths.get(jUnitTestPath));
+			System.out.println();
+		}
+		
+	}
+	/*
+	 * Parses the arguments passed from the command line
+	 * 
+	 * If DEBUG is true, then hard coded paths can be used
+	 * Otherwise will accept the following
+	 * 
+	 * <path_to_root_directory_for_projects> 
+	 * 
+	 * OPTIONAL
+	 * <path_to_junit.jar> <path of testing file>
+	 * 
+	 * If a path to the junit.jar and a testing file is not provided, then it will simply compile and run
+	 * the programs stored under <path_to_root_directory_for_projects>
+	 * 
+	 * If they are supplied then TESTING will be set to true to allow the program to run the junit test at <path of testing file> 
+	 * against each project stored under <path_to_root_directory_for_projects>
+	 */
+	private static void parseArgs(String[] args) {
+		//Test Paths
+		if(DEBUG) {
+			masterPath = "C:\\Users\\Ocean\\Desktop\\College\\CSCD 300\\AutoGrader\\JContainer\\RootForProjects";
+			jUnitJarPath = "C:\\Users\\Ocean\\Desktop\\College\\CSCD 300\\AutoGrader\\JContainer\\JunitJar\\junit.jar";
+			jUnitTestPath = "C:\\Users\\Ocean\\Desktop\\College\\CSCD 300\\AutoGrader\\JContainer\\JunitTestFile\\TestHello.java";
+		}
+		//Command Line Arguments
 		else {
 			if(args.length == 0 || args.length == 2 || args[0].equals("--help")) {
 				printHelp();
@@ -44,30 +95,36 @@ public class JDCR {
 			else if(args.length == 1) {
 				masterPath = args[0];
 				jUnitJarPath = "";
-				jUnitTestName = "";
+				jUnitTestPath = "";
 			}
 			else {
 				masterPath = args[0];
 				jUnitJarPath = args[1];
-				jUnitTestName = args[2];
+				jUnitTestPath = args[2];
+				TESTING = true;
 			}
 		}
+		//Get the root folder filename
 		String[] rt = masterPath.split("\\\\");
 		root = rt[rt.length-1];
 	}
+	
 	//Displays Command Line Help
 	private static void printHelp() {
 		System.out.println();
-		System.out.println("JDCR <path_to_root_directory_for_projects> optional <path_to_junit.jar> <name of Testing File>");
+		System.out.println("JDCR <path_to_root_directory_for_projects> optional <path_to_junit.jar> <path of testing file>");
 		System.out.println();
 		System.out.println("If no path to junit.jar or a name of a testing file is provided, will just execute projects in the root directory");
+		System.out.println("<path_to_junit.jar> must end with the .jar file");
+		System.out.println("<path_of_testing_file> Must end with a .java file");
 		System.out.println();
 	}
+	
 	/*
 	 * Determines if a java.class file has a main method in it. If the system doesn't recognize
 	 * javap then it means the jdk/bin directory is not in your Path variable
 	 * 
-	 * Returns true if the class file has a main, false otherwise
+	 * Returns true if the class file has a main, false otherwise. This is used if TESTING is false
 	 */
 	private static boolean isExecutable(String classFilePath)throws IOException {
 		classFilePath = classFilePath.replaceAll(".java", ".class");
@@ -127,7 +184,7 @@ public class JDCR {
     	return true;
 	}
 	/*
-	 * Gets the output from the compiler or interpreter
+	 * Gets the output from the compiler or interpreter and displays it
 	 */
 	private static String getOutput(String outputType,BufferedReader out) throws IOException{
 		String line = out.readLine(),output = "";
@@ -144,7 +201,9 @@ public class JDCR {
 		return output;
 	}
 	
-	//Takes each ArrayList from projectFiles and attempts to compile and run it
+	/*
+	 * Attempts to compile and run each project stored in the projectFiles arrayList
+	 */
 	private static void compileAndRun(ArrayList<String>f) {
 		String[] args = new String[f.size()];
 		//create the arguments to pass to the compiler
@@ -154,22 +213,39 @@ public class JDCR {
 	    }
 	    try {
 	    	//create the default arguments to pass to the interpreter
-	        String[] args2 = new String[4];
-	        args2[0]="java";
-	        args2[1] = "-cp";
-	        args2[2] = f.get(0);
+	        
 	        //test to see if the project will compile
 	        if(execute(args)) {
-		        for(int i = 3;i<args.length;i++) {
-		        	//test each java file to see if it has a main. If it has one, will execute.
-		        	if(isExecutable(args[i])) {
-			        	args2[3]=args[i];
-			            System.out.println("Running: "+args2[3].substring(args2[3].lastIndexOf("\\")+1,args2[3].length()));
-			            System.out.println("Path: "+args2[2]);
-			            System.out.println();
-			            execute(args2);
-		        	}
-		        }
+	        	if(TESTING) {
+	        		String[] args2 = new String[7];
+	    	        args2[0]="java";
+	    	        args2[1] = "-jar";
+	        		args2[2] = jUnitJarPath;
+	        		args2[3] = "-cp";
+	        		args2[4] = f.get(0);
+	        		args2[5] = "-c";
+	        		args2[6] = jUnitTestPath.substring(jUnitTestPath.lastIndexOf("\\")+1,jUnitTestPath.length()).replace(".java", "");
+	        		System.out.println("Running Test");
+	        		System.out.println("Path: "+f.get(0));
+	        		System.out.println();
+	        		execute(args2);
+	        	}
+	        	else {
+	        		String[] args2 = new String[4];
+	    	        args2[0]="java";
+	    	        args2[1] = "-cp";
+	        		args2[2] = f.get(0);
+			        for(int i = 3;i<args.length;i++) {
+			        	//test each java file to see if it has a main. If it has one, will execute.
+			        	if(isExecutable(args[i])) {
+				        	args2[3]=args[i];
+				            System.out.println("Running: "+args2[3].substring(args2[3].lastIndexOf("\\")+1,args2[3].length()));
+				            System.out.println("Path: "+args2[2]);
+				            System.out.println();
+				            execute(args2);
+			        	}
+			        }
+	        	}
 	        }
 	    }
         catch(Exception e) {
@@ -180,7 +256,7 @@ public class JDCR {
 Creates a header String from pathName that is the path .\root_folder_name\project_folder_name
 e.g pathName = C:\\Users\\ostrc\\Desktop\\College\\CSCD 300\\Root\\Test1\\Test.java
 String header = C:\\Users\\ostrc\\Desktop\\College\\CSCD 300\\Root\\Test1
-It is vitally important that the project folders are stored directly under root otherwise code may
+It is vitally important that the project folders are stored directly under masterPath otherwise code may
 not compile and/or run
 		
 Then checks if any arrayList in projectFiles has the same header, headers are always
@@ -225,7 +301,10 @@ TO-DO: Need to handle potential duplicate file names, perhaps when the files are
 				projectFiles.add(i,new ArrayList<String>());
 				projectFiles.get(i).add(header);
 				projectFiles.get(i).add("-cp");
-				projectFiles.get(i).add(masterPath);
+				//If we are testing, append the path to the junit jar to the rest of the class path
+				//for compilation and execution
+				if(TESTING)projectFiles.get(i).add(masterPath+";"+jUnitJarPath);
+				else projectFiles.get(i).add(masterPath);;
 				projectFiles.get(i).add(pathName);	
 			}
 		}

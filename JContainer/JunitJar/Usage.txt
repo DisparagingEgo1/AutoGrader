@@ -10,3 +10,4 @@ TestHello is our testing file
 
 to run a test from command line use
 java -jar <path to junit.jar> -cp <classpath to Test file> -c <Testfile name>
+0	1	2		3	4		    5	     6
