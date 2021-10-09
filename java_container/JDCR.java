@@ -24,7 +24,7 @@ public class JDCR {
 			System.out.println("No path specified for project folders.");
 			System.exit(0);
 		}
-		else if(args.length != 0) {
+		else{
 			masterPath = args[0];
 		}
 		String[] rt = masterPath.split("\\\\");
@@ -45,8 +45,8 @@ public class JDCR {
 		classFilePath = classFilePath.replaceAll(".java", ".class");
 		String[] args = {"javap",classFilePath};
 		Process proc = Runtime.getRuntime().exec(args);
-		String out = printOutput("File Output",new BufferedReader(new InputStreamReader(proc.getInputStream())));
-    	String err = printOutput("Error Output",new BufferedReader(new InputStreamReader(proc.getErrorStream())));
+		String out = getOutput("File Output",new BufferedReader(new InputStreamReader(proc.getInputStream())));
+    	String err = getOutput("Error Output",new BufferedReader(new InputStreamReader(proc.getErrorStream())));
     	proc.destroy();
     	//check the class file for main
     		if(out.contains("public static void main")) {
@@ -67,8 +67,8 @@ public class JDCR {
 	private static boolean execute(String[]args) throws IOException {
 		//parse output as either a compile or execution depending on args[0]
 		Process proc = Runtime.getRuntime().exec(args);
-    	String out = printOutput("File Output",new BufferedReader(new InputStreamReader(proc.getInputStream())));
-    	String err = printOutput("Error Output",new BufferedReader(new InputStreamReader(proc.getErrorStream())));
+    	String out = getOutput("File Output",new BufferedReader(new InputStreamReader(proc.getInputStream())));
+    	String err = getOutput("Error Output",new BufferedReader(new InputStreamReader(proc.getErrorStream())));
     	proc.destroy();
     	switch(args[0]) {
     		case "javac":
@@ -99,9 +99,9 @@ public class JDCR {
     	return true;
 	}
 	/*
-	 * Prints the output from the compiler or interpreter
+	 * Gets the output from the compiler or interpreter
 	 */
-	private static String printOutput(String outputType,BufferedReader out) throws IOException{
+	private static String getOutput(String outputType,BufferedReader out) throws IOException{
 		String line = out.readLine(),output = "";
 		if(line == null);
 		else {
