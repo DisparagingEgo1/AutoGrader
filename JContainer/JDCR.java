@@ -2,17 +2,15 @@ package JContainer;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.CopyOption;
 import java.nio.file.DirectoryIteratorException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 //Java Dynamic Compile and Run
 //Must add your jdk/bin to the Path variable for your system if javap does not work.
-//TO-DO: Implement Junit Testing and write project output to files
+//TO-DO: 
 public class JDCR {
 	private static String masterPath;//Path to Root Folder
 	private static String root;//Name of Root Folder
@@ -44,18 +42,21 @@ public class JDCR {
 	 * project folder and then return it after the test is complete.
 	 */
 	private static void moveTestFile(ArrayList<String> project,int flag) throws IOException {
+		//move test file in
 		String[] rt = jUnitTestPath.split("\\\\");
 		if(flag == 1) {
 			project.add((Files.move(Paths.get(jUnitTestPath),Paths.get(project.get(0)+"\\\\"+rt[rt.length-1]))).toString());
 			System.out.println();
 		}
 		else {
+			//clean up
 			try {
 				Files.delete(Paths.get((project.get(0)+"\\\\"+rt[rt.length-1]).replace(".java", ".class")));
 			}
 			catch(Exception e){
 				
 			}
+			//move test file out
 			project.remove(project.size()-1);
 			Files.move(Paths.get(project.get(0)+"\\\\"+rt[rt.length-1]),Paths.get(jUnitTestPath));
 			System.out.println();
