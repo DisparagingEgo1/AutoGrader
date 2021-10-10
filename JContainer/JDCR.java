@@ -8,9 +8,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-//Java Dynamic Compile and Run
-//Must add your jdk/bin to the Path variable for your system if javap does not work.
-//TO-DO: 
+
+/*  Java Dynamic Compile and Run
+ * 
+ * -Notes: Must add your jdk/bin path to the System Path variable, otherwise the isExecutable() function
+ * 		   will not work.
+ * 
+ * TO-DO: Write output to a file/Score Test output. Enhanced command line parsing, potentially reading in an argument file, allowing user
+ * 		  to set default paths to masterPath,jUnitJarPath?
+ */
+
 public class JDCR {
 	private static String masterPath;//Path to Root Folder
 	private static String root;//Name of Root Folder
@@ -72,20 +79,20 @@ public class JDCR {
 	 * <path_to_root_directory_for_projects> 
 	 * 
 	 * OPTIONAL
-	 * <path_to_junit.jar> <path of testing file>
+	 * <fully_qualified_path_to_junit.jar> <fully_qualified_path of testing file>
 	 * 
 	 * If a path to the junit.jar and a testing file is not provided, then it will simply compile and run
 	 * the programs stored under <path_to_root_directory_for_projects>
 	 * 
-	 * If they are supplied then TESTING will be set to true to allow the program to run the junit test at <path of testing file> 
+	 * If they are supplied then TESTING will be set to true to allow the program to run the junit test at <fully_qualified_path of testing file> 
 	 * against each project stored under <path_to_root_directory_for_projects>
 	 */
 	private static void parseArgs(String[] args) {
 		//Test Paths
 		if(DEBUG) {
 			masterPath = "C:\\Users\\Ocean\\Desktop\\College\\CSCD 300\\AutoGrader\\JContainer\\RootForProjects";
-			jUnitJarPath = "C:\\Users\\Ocean\\Desktop\\College\\CSCD 300\\AutoGrader\\JContainer\\JunitJar\\junit.jar";
-			jUnitTestPath = "C:\\Users\\Ocean\\Desktop\\College\\CSCD 300\\AutoGrader\\JContainer\\JunitTestFile\\TestHello.java";
+			jUnitJarPath = "C:\\Users\\Ocean\\Desktop\\College\\CSCD 300\\AutoGrader\\JContainer\\JunitJar\\junit.jar";//FQP
+			jUnitTestPath = "C:\\Users\\Ocean\\Desktop\\College\\CSCD 300\\AutoGrader\\JContainer\\JunitTestFile\\TestHello.java";//FQP
 		}
 		//Command Line Arguments
 		else {
@@ -113,11 +120,11 @@ public class JDCR {
 	//Displays Command Line Help
 	private static void printHelp() {
 		System.out.println();
-		System.out.println("JDCR <path_to_root_directory_for_projects> optional <path_to_junit.jar> <path of testing file>");
+		System.out.println("JDCR <path_to_root_directory_for_projects> OPTIONAL: <fully_qualified_path_to_junit.jar> <fully_qualified_path of testing file>");
 		System.out.println();
 		System.out.println("If no path to junit.jar or a name of a testing file is provided, will just execute projects in the root directory");
-		System.out.println("<path_to_junit.jar> must end with the .jar file");
-		System.out.println("<path_of_testing_file> Must end with a .java file");
+		System.out.println("<fully_qualified_path_to_junit.jar> must end with the .jar file");
+		System.out.println("<fully_qualified_path of testing file> Must end with a .java file");
 		System.out.println();
 	}
 	
