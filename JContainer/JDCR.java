@@ -24,7 +24,7 @@ public class JDCR {
 	private static String jUnitJarPath;//path to junit.jar
 	private static String jUnitTestPath;//path for junit testing file that will be run this session
 	private static ArrayList<ArrayList<String>> projectFiles = new ArrayList<ArrayList<String>>();//ArrayList containing ArrayLists of each student's project files
-	private static final boolean DEBUG = false;//disable needing command line arguments for testing
+	private static final boolean DEBUG = true;//disable needing command line arguments for testing
 	private static boolean TESTING = false;
 		
 	
@@ -90,9 +90,9 @@ public class JDCR {
 	private static void parseArgs(String[] args) {
 		//Test Paths
 		if(DEBUG) {
-			masterPath = "C:\\Users\\Ocean\\Desktop\\College\\CSCD 300\\AutoGrader\\JContainer\\RootForProjects";
-			jUnitJarPath = "C:\\Users\\Ocean\\Desktop\\College\\CSCD 300\\AutoGrader\\JContainer\\JunitJar\\junit.jar";//FQP
-			jUnitTestPath = "C:\\Users\\Ocean\\Desktop\\College\\CSCD 300\\AutoGrader\\JContainer\\JunitTestFile\\TestHello.java";//FQP
+			masterPath = ".\\JContainer\\RootForProjects";
+			jUnitJarPath = ".\\JContainer\\JunitJar\\junit.jar";//FQP
+			jUnitTestPath = ".\\JContainer\\JunitTestFile\\TestHello.java";//FQP
 		}
 		//Command Line Arguments
 		else {
@@ -173,6 +173,11 @@ public class JDCR {
     					if(lineArray[i].contains(masterPath)) {
     		   				System.out.println("File: "+lineArray[i].substring(lineArray[i].lastIndexOf("\\")+1,lineArray[i].indexOf(".java")+5)+" did not compile.");
     		   				System.out.println("Path: "+lineArray[i].substring(0,lineArray[i].lastIndexOf("\\")));
+    					}
+    				}
+    				if(DEBUG) {
+    					for(String s: lineArray) {
+    						System.out.println(s);
     					}
     				}
     				System.out.println("---------------------------------------------------------------------------------------------");
