@@ -284,7 +284,7 @@ Indices 3 and on are absolute paths to java files.
 		 
 TO-DO: Need to handle potential duplicate file names, perhaps when the files are submitted?, e.g. SmithJLab1, 2SmithJLab1
 */
-	private static void editprojectFiles(String pathName) {
+	private static void editProjectFiles(String pathName) {
 		String[] temp = pathName.split("\\\\");//Split path name into parts for parsing
 		String header = "";
 		//create the source file path for each project
@@ -320,7 +320,7 @@ TO-DO: Need to handle potential duplicate file names, perhaps when the files are
 	}
 /*
 This grabs all java files in the directory path dir. For each .java file it sends the path to that file
-to editprojectFiles which will add it into the projectFiles ArrayList
+to editProjectFiles which will add it into the projectFiles ArrayList
 */
 	private static void getProjectFiles(Path dir) {
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
@@ -329,7 +329,7 @@ to editprojectFiles which will add it into the projectFiles ArrayList
 		    		getProjectFiles(file.toAbsolutePath());
 		    	}
 		    	else if(file.toString().endsWith(".java")) {
-				    editprojectFiles(file.toString());
+				    editProjectFiles(file.toString());
 		    	}
 		    }
 		    stream.close();
