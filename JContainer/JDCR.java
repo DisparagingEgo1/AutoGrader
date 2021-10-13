@@ -14,8 +14,10 @@ import java.util.ArrayList;
  * -Notes: Must add your jdk/bin path to the System Path variable, otherwise the isExecutable() function
  * 		   will not work.
  * 
- * TO-DO: Write output to a file/Score Test output. Enhanced command line parsing, potentially reading in an argument file, allowing user
- * 		  to set default paths to masterPath,jUnitJarPath?
+ * TO-DO: Tristan: File and Testing Output for each project. 
+ * 		  Trace: Will Be Assigned Friday
+ * 		  Unassigned/Undecided: Simply Gui for uploading files to a server, Output graded test results to csv file in root. Enhanced Command Line abilities such
+ * 								as setting default paths, reading an arguments file, setting debug/testing
  */
 
 public class JDCR {
@@ -25,7 +27,7 @@ public class JDCR {
 	private static String jUnitTestPath;//path for junit testing file that will be run this session
 	private static ArrayList<ArrayList<String>> projectFiles = new ArrayList<ArrayList<String>>();//ArrayList containing ArrayLists of each student's project files
 	private static final boolean DEBUG = true;//disable needing command line arguments for testing
-	private static boolean TESTING = false;
+	private static boolean TESTING = false;//Used when a junit test will be run
 		
 	
 	public static void main(String[] args)throws Exception {
@@ -47,6 +49,10 @@ public class JDCR {
 	/*
 	 * If TESTING is true then this will move the testing file stored at jUnitTestPath into each
 	 * project folder and then return it after the test is complete.
+	 * 
+	 * -NOTE: If this program is interrupted before it completes it is possible that the junit Test file
+	 * 		   will not be returned to the correct directory or may be deleted. Keep a backup and remember
+	 * 		   to move it back.
 	 */
 	private static void moveTestFile(ArrayList<String> project,int flag) throws IOException {
 		//move test file in
@@ -56,14 +62,14 @@ public class JDCR {
 			System.out.println();
 		}
 		else {
-			//clean up
+			//clean up the testing file .class file
 			try {
 				Files.delete(Paths.get((project.get(0)+"\\\\"+rt[rt.length-1]).replace(".java", ".class")));
 			}
 			catch(Exception e){
 				
 			}
-			//move test file out
+			//move test to its original directory
 			project.remove(project.size()-1);
 			Files.move(Paths.get(project.get(0)+"\\\\"+rt[rt.length-1]),Paths.get(jUnitTestPath));
 			System.out.println();
@@ -80,6 +86,8 @@ public class JDCR {
 	 * 
 	 * OPTIONAL
 	 * <fully_qualified_path_to_junit.jar> <fully_qualified_path of testing file>
+	 * 
+	 * Fully Qualified Paths(FQP) include the file in the path.
 	 * 
 	 * If a path to the junit.jar and a testing file is not provided, then it will simply compile and run
 	 * the programs stored under <path_to_root_directory_for_projects>
@@ -132,7 +140,10 @@ public class JDCR {
 	 * Determines if a java.class file has a main method in it. If the system doesn't recognize
 	 * javap then it means the jdk/bin directory is not in your Path variable
 	 * 
-	 * Returns true if the class file has a main, false otherwise. This is used if TESTING is false
+	 * Returns true if the class file has a main, false otherwise.
+	 *  
+	 * This method is only used when the user wants to run the projects individually and isn't 
+	 * testing them. TESTING will be false
 	 */
 	private static boolean isExecutable(String classFilePath)throws IOException {
 		classFilePath = classFilePath.replaceAll(".java", ".class");
@@ -175,6 +186,7 @@ public class JDCR {
     		   				System.out.println("Path: "+lineArray[i].substring(0,lineArray[i].lastIndexOf("\\")));
     					}
     				}
+    				//Print full error Output
     				if(DEBUG) {
     					for(String s: lineArray) {
     						System.out.println(s);
@@ -198,6 +210,8 @@ public class JDCR {
 	}
 	/*
 	 * Gets the output from the compiler or interpreter and displays it
+	 * 
+	 * This or execute() will be the entry point for writing to a file and grading projects
 	 */
 	private static String getOutput(String outputType,BufferedReader out) throws IOException{
 		String line = out.readLine(),output = "";
@@ -215,7 +229,7 @@ public class JDCR {
 	}
 	
 	/*
-	 * Attempts to compile and run each project stored in the projectFiles arrayList
+	 * Attempts to compile and either run or test each project stored in the projectFiles arrayList
 	 */
 	private static void compileAndRun(ArrayList<String>f) {
 		String[] args = new String[f.size()];
@@ -225,8 +239,6 @@ public class JDCR {
 	    	else args[i]=f.get(i);
 	    }
 	    try {
-	    	//create the default arguments to pass to the interpreter
-	        
 	        //test to see if the project will compile
 	        if(execute(args)) {
 	        	if(TESTING) {
@@ -305,11 +317,11 @@ TO-DO: Need to handle potential duplicate file names, perhaps when the files are
 		}
 		//check if this file is part of any other project
 		for(int i = 0; !(i != 0 && projectFiles.get(i-1).get(0).equals(header));i++) {
-			
+			//if it is, add it to that project
 			if(projectFiles.size() != 0 && projectFiles.get(i).get(0).equals(header)) {
 				projectFiles.get(i).add(pathName);
 			}
-			//if projectFiles is empty or we are at the end of it without a match
+			//if projectFiles is empty or we dont match make a new project
 			else if(projectFiles.size() == 0 || i == projectFiles.size()-1) {
 				projectFiles.add(i,new ArrayList<String>());
 				projectFiles.get(i).add(header);
@@ -317,7 +329,7 @@ TO-DO: Need to handle potential duplicate file names, perhaps when the files are
 				//If we are testing, append the path to the junit jar to the rest of the class path
 				//for compilation and execution
 				if(TESTING)projectFiles.get(i).add(masterPath+";"+jUnitJarPath);
-				else projectFiles.get(i).add(masterPath);;
+				else projectFiles.get(i).add(masterPath);
 				projectFiles.get(i).add(pathName);	
 			}
 		}
@@ -326,6 +338,8 @@ TO-DO: Need to handle potential duplicate file names, perhaps when the files are
 /*
 This grabs all java files in the directory path dir. For each .java file it sends the path to that file
 to editProjectFiles which will add it into the projectFiles ArrayList
+
+Searchs directories recursively
 */
 	private static void getProjectFiles(Path dir) {
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
