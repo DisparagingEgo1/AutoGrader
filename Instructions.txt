@@ -1,5 +1,4 @@
 Make sure that jdk/bin is in your Path variable
-download junit standalone https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/
 Recommended file structure
 
 JDRC folder->Junit Jar Folder->Junit Tests Folder
