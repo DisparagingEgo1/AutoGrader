@@ -27,7 +27,7 @@ public class JDCR {
 	private static String jUnitTestPath;//path for junit testing file that will be run this session
 	private static ArrayList<ArrayList<String>> projectFiles = new ArrayList<ArrayList<String>>();//ArrayList containing ArrayLists of each student's project files
 	private static final boolean DEBUG = true;//disable needing command line arguments for testing
-	private static boolean TESTING = false;//Used when a junit test will be run
+	private static boolean TESTING = true;//Used when a junit test will be run
 		
 	
 	public static void main(String[] args)throws Exception {
@@ -302,6 +302,9 @@ Indices 3 and on are absolute paths to java files.
 TO-DO: Need to handle potential duplicate file names, perhaps when the files are submitted?, e.g. SmithJLab1, 2SmithJLab1
 */
 	private static void editProjectFiles(String pathName) {
+		if(pathName.contains("\\.\\")) {
+			pathName = pathName.replace("\\.\\", "\\");
+		}
 		String[] temp = pathName.split("\\\\");//Split path name into parts for parsing
 		String header = "";
 		//create the source file path for each project
