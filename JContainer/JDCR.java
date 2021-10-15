@@ -1,7 +1,9 @@
 package JContainer;
 import java.io.BufferedReader;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.nio.file.DirectoryIteratorException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -32,14 +34,20 @@ public class JDCR {
 	
 	public static void main(String[] args)throws Exception {
 		//Setup
+		PrintStream originalOut = System.out;
 		parseArgs(args);
 		getProjectFiles(Paths.get(masterPath));
 		//attempt to compile and run each project
 		for(ArrayList<String> a: projectFiles) {
 			if(TESTING) {
-				moveTestFile(a,1);
-				compileAndRun(a);
-				moveTestFile(a,2);
+				//FileOutputStream f = new FileOutputStream(a.get(0) + "\\Results.txt");
+                //System.setOut(new PrintStream(f));
+                moveTestFile(a,1);
+                compileAndRun(a);
+                moveTestFile(a,2);
+                //modify Results.txt method here
+                //System.setOut(originalOut);
+
 			}
 			else {
 				compileAndRun(a);
