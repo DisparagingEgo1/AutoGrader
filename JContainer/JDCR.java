@@ -15,9 +15,9 @@ import java.util.ArrayList;
  * 		   will not work.
  * 
  * TO-DO: Tristan: File and Testing Output for each project. 
- * 		  Trace: Will Be Assigned Friday
- * 		  Unassigned/Undecided: Simply Gui for uploading files to a server, Output graded test results to csv file in root. Enhanced Command Line abilities such
- * 								as setting default paths, reading an arguments file, setting debug/testing
+ * 		  Trace: Gui
+ * 		  Unassigned/Undecided: Simply Gui for uploading files to a server, Output graded test results to csv file in root(folder_name,Homework2,score)Flexibility to add more. Constant java
+ * 								file that holds all the constants. Enhanced Command Line abilities such as setting default paths, reading an arguments file, setting debug/testing
  */
 
 public class JDCR {
@@ -305,9 +305,6 @@ Indices 3 and on are absolute paths to java files.
 TO-DO: Need to handle potential duplicate file names, perhaps when the files are submitted?, e.g. SmithJLab1, 2SmithJLab1
 */
 	private static void editProjectFiles(String pathName) {
-		if(pathName.contains("\\.\\")) {
-			pathName = pathName.replace("\\.\\", "\\");
-		}
 		String[] temp = pathName.split("\\\\");//Split path name into parts for parsing
 		String header = "";
 		//create the source file path for each project
