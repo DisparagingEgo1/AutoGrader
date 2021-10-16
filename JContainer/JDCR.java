@@ -29,7 +29,7 @@ public class JDCR {
 	private static String jUnitTestPath;//path for junit testing file that will be run this session
 	private static ArrayList<ArrayList<String>> projectFiles = new ArrayList<ArrayList<String>>();//ArrayList containing ArrayLists of each student's project files
 	private static final boolean DEBUG = true;//disable needing command line arguments for testing
-	private static boolean TESTING = true;//Used when a junit test will be run
+	private static boolean TESTING = false;//Used when a junit test will be run
 		
 	
 	public static void main(String[] args)throws Exception {
@@ -93,14 +93,14 @@ public class JDCR {
 	 * <path_to_root_directory_for_projects> 
 	 * 
 	 * OPTIONAL
-	 * <fully_qualified_path_to_junit.jar> <fully_qualified_path of testing file>
+	 * <fully_qualified_path_to_junit.jar> <fully_qualified_path_of_testing_file>
 	 * 
 	 * Fully Qualified Paths(FQP) include the file in the path.
 	 * 
 	 * If a path to the junit.jar and a testing file is not provided, then it will simply compile and run
 	 * the programs stored under <path_to_root_directory_for_projects>
 	 * 
-	 * If they are supplied then TESTING will be set to true to allow the program to run the junit test at <fully_qualified_path of testing file> 
+	 * If they are supplied then TESTING will be set to true to allow the program to run the junit test at <fully_qualified_path_of_testing_file> 
 	 * against each project stored under <path_to_root_directory_for_projects>
 	 */
 	private static void parseArgs(String[] args) {
@@ -146,79 +146,101 @@ public class JDCR {
 		System.out.println("<fully_qualified_path of testing file> Must end with a .java file");
 		System.out.println();
 	}
-	
 	/*
-	 * Determines if a java.class file has a main method in it. If the system doesn't recognize
-	 * javap then it means the jdk/bin directory is not in your Path variable
+	 * Displays the resulting output from execute
 	 * 
-	 * Returns true if the class file has a main, false otherwise.
-	 *  
-	 * This method is only used when the user wants to run the projects individually and isn't 
-	 * testing them. TESTING will be false
+	 * Does not displace compiler output unless DEBUG is true
 	 */
-	private static boolean isExecutable(String classFilePath)throws IOException {
-		classFilePath = classFilePath.replaceAll(".java", ".class");
-		String[] args = {"javap",classFilePath};
-		return execute(args);
+	private static void displayOutput(String cmdType,String[] args, String out,String err) {
+		switch(cmdType) {
+		case "javac":
+			//If not empty, means the program failed to compile
+			if(!err.isEmpty()) {
+				System.out.println("---------------------------------------------------------------------------------------------");
+				System.out.print("[");
+				for(int i = 3; i <args.length; i++) {
+					if(i == args.length -1)System.out.print(args[i].substring(args[i].lastIndexOf("\\")+1));
+					else System.out.print(args[i].substring(args[i].lastIndexOf("\\")+1)+" , ");
+				}
+				System.out.print("] Did Not Compile Successfully" + "\n");
+				//Print full error output from the compiler if using DEBUG mode
+				if(DEBUG) {
+					String[]lineArray = err.split("\n");
+					for(String s: lineArray) {
+						System.out.println(s);
+					}
+				}
+				System.out.println("---------------------------------------------------------------------------------------------");
+ 				break;
+			}
+			//compiled successfully
+			else {
+				System.out.print("[");
+				//print out the list of files that compiled
+				for(int i = 3; i <args.length; i++) {
+					if(i == args.length -1)System.out.print(args[i].substring(args[i].lastIndexOf("\\")+1));//last file in the list
+					else System.out.print(args[i].substring(args[i].lastIndexOf("\\")+1)+" , ");
+				}
+				System.out.print("] Compiled Successfully" + "\n");
+				break;
+			}
+		case "java":
+			//display output of a program
+			System.out.print(out);
+			System.out.print(err);
+			break;	
+		} 
 	}
 	/*
-	 * Compiles and Executes java files
-	 * String[]args will either contain the arguments for the compiler and args[0] will be javac or
-	 * the arguments for the interpreter in which case args[0] will be java. Any projects that reach
-	 * the interpreter will not contain any compile time exceptions but may crash with runtime exceptions
+	 * Compiles the project represented by args
 	 * 
-	 * Returns true if no errors were encountered or false otherwise
+	 * Returns true if it successfully compiles, false otherwise
 	 */
-	private static boolean execute(String[]args) throws IOException {
+	private static boolean compile(String[]args) throws IOException{
+		String[] results = execute(args);
+		displayOutput("javac",args,results[0],results[1]);
+		//If the program failed to compile return false
+		if(!results[1].isEmpty())return false;	
+		return true;
+	}
+	/*
+	 * Runs the project represented in args
+	 */
+	private static void run(String[]args) throws IOException{
+		String[] results = execute(args);
+		displayOutput("java",args,results[0],results[1]);
+	}
+	/*
+	 * Determines if a the class stored in args[3] has a main method. This is only used
+	 * if TESTING is false
+	 * 
+	 * Returns true if it does, false otherwise.
+	 */
+	private static boolean hasMain(String[] args) throws IOException{
+		String temp = args[0],temp2 = args[3];
+		args[0] = "javap";
+		args[3] = args[3].replaceAll(".java", ".class");
+		String[] results = execute(args);
+		args[0] = temp;
+		args[3] = temp2;
+		if(results[0].contains("public static void main")) return true;
+		return false;
+	}
+	/*
+	 * Executes command line code stored in args.
+	 * 
+	 * Returns the resulting output from stdout and stderr
+	 */
+	private static String[] execute(String[]args) throws IOException {
 		//parse output as either a compile or execution depending on args[0]
 		Process proc = Runtime.getRuntime().exec(args);
     	String out = getOutput("File Output",new BufferedReader(new InputStreamReader(proc.getInputStream())));
     	String err = getOutput("Error Output",new BufferedReader(new InputStreamReader(proc.getErrorStream())));
     	proc.destroy();
-    	switch(args[0]) {
-    		case "javac":
-    			//If not empty, means the program failed to compile
-    			if(!err.isEmpty()) {
-    				String[]lineArray = err.split("\n");
-    				System.out.println("---------------------------------------------------------------------------------------------");
-    				for(int i =0; !(i != 0 &&  lineArray[i-1].contains(masterPath));i++) {
-    					if(lineArray[i].contains(masterPath)) {
-    		   				System.out.println("File: "+lineArray[i].substring(lineArray[i].lastIndexOf("\\")+1,lineArray[i].indexOf(".java")+5)+" did not compile.");
-    		   				System.out.println("Path: "+lineArray[i].substring(0,lineArray[i].lastIndexOf("\\")));
-    					}
-    				}
-    				//Print full error Output
-    				if(DEBUG) {
-    					for(String s: lineArray) {
-    						System.out.println(s);
-    					}
-    				}
-    				System.out.println("---------------------------------------------------------------------------------------------");
-     				return false;
-    			}
-    			//compiled successfully
-    			else {
-    				System.out.println(args[3].substring(args[3].lastIndexOf("\\")+1)+" Compiled Successfully.");
-    				break;
-    			}
-    		case "java":
-    			//display output of program
-    			System.out.print(out);
-    			System.out.print(err);
-    			break;	
-    		case "javap":
-    			//check the class file for main
-        		if(out.contains("public static void main")) {
-        			return true;
-        		}
-        	//if there should be some error, display it
-        		if(!err.isEmpty())System.out.print(err);
-        		return false;
-    	} 
-    	return true;
+    	return new String[] {out,err};
 	}
 	/*
-	 * Gets the output from the compiler or interpreter and displays it
+	 * Gets the output from the compiler or interpreter and returns it
 	 * 
 	 * This or execute() will be the entry point for writing to a file and grading projects
 	 */
@@ -249,7 +271,7 @@ public class JDCR {
 	    }
 	    try {
 	        //test to see if the project will compile
-	        if(execute(args)) {
+	        if(compile(args)) {
 	        	if(TESTING) {
 	        		String[] args2 = new String[7];
 	    	        args2[0]="java";
@@ -262,7 +284,7 @@ public class JDCR {
 	        		System.out.println("Running Test");
 	        		System.out.println("Path: "+f.get(0));
 	        		System.out.println();
-	        		execute(args2);
+	        		run(args2);
 	        	}
 	        	else {
 	        		String[] args2 = new String[4];
@@ -270,13 +292,13 @@ public class JDCR {
 	    	        args2[1] = "-cp";
 	        		args2[2] = f.get(0);
 			        for(int i = 3;i<args.length;i++) {
-			        	//test each java file to see if it has a main. If it has one, will execute.
-			        	if(isExecutable(args[i])) {
-				        	args2[3]=args[i];
+			        	//test each java file to see if it has a main. If it has one, will run it.
+			        	args2[3]=args[i];
+			        	if(hasMain(args2)) {
 				            System.out.println("Running: "+args2[3].substring(args2[3].lastIndexOf("\\")+1,args2[3].length()));
 				            System.out.println("Path: "+args2[2]);
 				            System.out.println();
-				            execute(args2);
+				            run(args2);
 			        	}
 			        }
 	        	}
