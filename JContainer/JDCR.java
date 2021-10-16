@@ -108,7 +108,7 @@ public class JDCR {
 		if(DEBUG) {
 			masterPath = ".\\JContainer\\RootForProjects";
 			jUnitJarPath = ".\\JContainer\\JunitJar\\junit.jar";//FQP
-			jUnitTestPath = ".\\JContainer\\JunitTestFile\\TestHello.java";//FQP
+			jUnitTestPath = ".\\JContainer\\JunitTestFile\\MyLinkedListTest.java";//FQP
 			masterPath = Paths.get(masterPath).toAbsolutePath().toString().replace("\\.\\", "\\");
 			jUnitJarPath = Paths.get(jUnitJarPath).toAbsolutePath().toString().replace("\\.\\", "\\");
 			jUnitTestPath = Paths.get(jUnitTestPath).toAbsolutePath().toString().replace("\\.\\", "\\");
