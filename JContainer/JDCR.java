@@ -159,17 +159,7 @@ public class JDCR {
 	private static boolean isExecutable(String classFilePath)throws IOException {
 		classFilePath = classFilePath.replaceAll(".java", ".class");
 		String[] args = {"javap",classFilePath};
-		Process proc = Runtime.getRuntime().exec(args);
-		String out = getOutput("File Output",new BufferedReader(new InputStreamReader(proc.getInputStream())));
-    	String err = getOutput("Error Output",new BufferedReader(new InputStreamReader(proc.getErrorStream())));
-    	proc.destroy();
-    	//check the class file for main
-    		if(out.contains("public static void main")) {
-    			return true;
-    		}
-    	//if there should be some error, display it
-    	if(!err.isEmpty())System.out.print(err);
-		return false;
+		return execute(args);
 	}
 	/*
 	 * Compiles and Executes java files
@@ -216,6 +206,14 @@ public class JDCR {
     			System.out.print(out);
     			System.out.print(err);
     			break;	
+    		case "javap":
+    			//check the class file for main
+        		if(out.contains("public static void main")) {
+        			return true;
+        		}
+        	//if there should be some error, display it
+        		if(!err.isEmpty())System.out.print(err);
+        		return false;
     	} 
     	return true;
 	}
