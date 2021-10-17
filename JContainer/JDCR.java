@@ -29,7 +29,7 @@ public class JDCR {
 	private static String jUnitTestPath;//path for junit testing file that will be run this session
 	private static ArrayList<ArrayList<String>> projectFiles = new ArrayList<ArrayList<String>>();//ArrayList containing ArrayLists of each student's project files
 	private static final boolean DEBUG = true;//disable needing command line arguments for testing
-	private static boolean TESTING = false;//Used when a junit test will be run
+	private static boolean TESTING = true;//Used when a junit test will be run
 		
 	
 	public static void main(String[] args)throws Exception {
@@ -232,7 +232,6 @@ public class JDCR {
 	 * Returns the resulting output from stdout and stderr
 	 */
 	private static String[] execute(String[]args) throws IOException {
-		//parse output as either a compile or execution depending on args[0]
 		Process proc = Runtime.getRuntime().exec(args);
     	String out = getOutput("File Output",new BufferedReader(new InputStreamReader(proc.getInputStream())));
     	String err = getOutput("Error Output",new BufferedReader(new InputStreamReader(proc.getErrorStream())));
