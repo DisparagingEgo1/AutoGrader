@@ -29,7 +29,7 @@ public class JDCR {
 	private static String jUnitTestPath;//path for junit testing file that will be run this session
 	private static ArrayList<ArrayList<String>> projectFiles = new ArrayList<ArrayList<String>>();//ArrayList containing ArrayLists of each student's project files
 	private static final boolean DEBUG = true;//disable needing command line arguments for testing
-	private static boolean TESTING = true;//Used when a junit test will be run
+	private static boolean TESTING = false;//Used when a junit test will be run
 		
 	
 	public static void main(String[] args)throws Exception {
@@ -149,48 +149,43 @@ public class JDCR {
 	/*
 	 * Displays the resulting output from execute
 	 * 
-	 * Does not displace compiler output unless DEBUG is true
+	 * Does not display compiler output unless DEBUG is true
 	 */
 	private static void displayOutput(String cmdType,String[] args, String out,String err) {
+		System.out.println("---------------------------------------------------------------------------------------------");
 		switch(cmdType) {
-		case "javac":
-			//If not empty, means the program failed to compile
-			if(!err.isEmpty()) {
-				System.out.println("---------------------------------------------------------------------------------------------");
+			case "javac":
 				System.out.print("[");
 				for(int i = 3; i <args.length; i++) {
 					if(i == args.length -1)System.out.print(args[i].substring(args[i].lastIndexOf("\\")+1));
 					else System.out.print(args[i].substring(args[i].lastIndexOf("\\")+1)+" , ");
 				}
-				System.out.print("] Did Not Compile Successfully" + "\n");
-				//Print full error output from the compiler if using DEBUG mode
-				if(DEBUG) {
-					String[]lineArray = err.split("\n");
-					for(String s: lineArray) {
-						System.out.println(s);
+				//If not empty, means the program failed to compile
+				if(!err.isEmpty()) {
+					
+					System.out.print("] Did Not Compile Successfully" + "\n");
+					//Print full error output from the compiler if using DEBUG mode
+					if(DEBUG) {
+						String[]lineArray = err.split("\n");
+						for(String s: lineArray) {
+							System.out.println(s);
+						}
 					}
 				}
-				System.out.println("---------------------------------------------------------------------------------------------");
- 				break;
-			}
-			//compiled successfully
-			else {
-				System.out.print("[");
-				//print out the list of files that compiled
-				for(int i = 3; i <args.length; i++) {
-					if(i == args.length -1)System.out.print(args[i].substring(args[i].lastIndexOf("\\")+1));//last file in the list
-					else System.out.print(args[i].substring(args[i].lastIndexOf("\\")+1)+" , ");
+				//compiled successfully
+				else {
+					System.out.print("] Compiled Successfully" + "\n");
 				}
-				System.out.print("] Compiled Successfully" + "\n");
 				break;
-			}
-		case "java":
-			//display output of a program
-			System.out.print(out);
-			System.out.print(err);
-			break;	
-		} 
+			case "java":
+				//display output of a program
+				System.out.print(out);
+				System.out.print(err);
+				break;	
+			} 
+		System.out.println("---------------------------------------------------------------------------------------------");
 	}
+	
 	/*
 	 * Compiles the project represented by args
 	 * 
@@ -252,7 +247,6 @@ public class JDCR {
 			do {
 				output += line +"\n";
 			}while((line = out.readLine()) != null);
-			output += "---------------------------------------------------------------------------------------------\n"; 
 		}
 		out.close();
 		return output;
