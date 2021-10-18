@@ -29,7 +29,7 @@ public class JDCR {
 	private static String jUnitTestPath;//path for junit testing file that will be run this session
 	private static ArrayList<ArrayList<String>> projectFiles = new ArrayList<ArrayList<String>>();//ArrayList containing ArrayLists of each student's project files
 	private static final boolean DEBUG = true;//disable needing command line arguments for testing
-	private static boolean TESTING = false;//Used when a junit test will be run
+	private static boolean TESTING = true;//Used when a junit test will be run
 		
 	
 	public static void main(String[] args)throws Exception {
@@ -266,14 +266,7 @@ public class JDCR {
 	        //test to see if the project will compile
 	        if(compile(args)) {
 	        	if(TESTING) {
-	        		String[] args2 = new String[7];
-	    	        args2[0]="java";
-	    	        args2[1] = "-jar";
-	        		args2[2] = jUnitJarPath;
-	        		args2[3] = "-cp";
-	        		args2[4] = f.get(0);
-	        		args2[5] = "-c";
-	        		args2[6] = jUnitTestPath.substring(jUnitTestPath.lastIndexOf("\\")+1,jUnitTestPath.length()).replace(".java", "");
+	        		String[] args2 = {"java","-jar",jUnitJarPath,"-cp",f.get(0),"-c",jUnitTestPath.substring(jUnitTestPath.lastIndexOf("\\")+1,jUnitTestPath.length()).replace(".java", "")};
 	        		System.out.println("Running Test");
 	        		System.out.println("Path: "+f.get(0));
 	        		System.out.println();
