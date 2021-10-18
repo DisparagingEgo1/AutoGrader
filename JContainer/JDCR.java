@@ -1,6 +1,5 @@
 package JContainer;
 import java.io.BufferedReader;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
@@ -29,7 +28,7 @@ public class JDCR {
 	private static String jUnitTestPath;//path for junit testing file that will be run this session
 	private static ArrayList<ArrayList<String>> projectFiles = new ArrayList<ArrayList<String>>();//ArrayList containing ArrayLists of each student's project files
 	private static final boolean DEBUG = true;//disable needing command line arguments for testing
-	private static boolean TESTING = true;//Used when a junit test will be run
+	private static boolean TESTING = false;//Used when a junit test will be run
 		
 	
 	public static void main(String[] args)throws Exception {
@@ -273,10 +272,7 @@ public class JDCR {
 	        		run(args2);
 	        	}
 	        	else {
-	        		String[] args2 = new String[4];
-	    	        args2[0]="java";
-	    	        args2[1] = "-cp";
-	        		args2[2] = f.get(0);
+	        		String[] args2 = {"java","-cp",f.get(0),""};
 			        for(int i = 3;i<args.length;i++) {
 			        	//test each java file to see if it has a main. If it has one, will run it.
 			        	args2[3]=args[i];
