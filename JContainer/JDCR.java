@@ -54,28 +54,37 @@ public class JDCR {
 			}
 		}
 	}
-	
+	/*
+	 * Captures the wanted output from testOuput and discards the rest
+	 * 
+	 * Desired output for each failure is:
+	 * Method Name: <name_of_test_method>  Expected Output: <expected_output>  Actual Output: <actual_output>
+	 * 
+	 * After all failures have been found we process the final block of text for the completed vs failed tests and
+	 * display the following output:
+	 * 
+	 * Successful  Tests: #successful_tests  Failed Tests: #failed_tests  Total Tests: successful_tests + failed_tests
+	 */
 	private static String parseResults(String testOutput){
-		//testOutput = testOutput.substring(testOutput.indexOf("Failures"));
 		testOutput = testOutput.replaceAll("\n", " ");
 		char[] testOutputArray = testOutput.toCharArray();
 		String pattern = "";
 		StringBuilder result = new StringBuilder();
 		StringBuilder failures;
-		boolean  failed = false;
+		boolean failed = false;
 		int numFailures = 0, recordedFailures = 0;
 
 		for(int i = 0; i < testOutputArray.length;i++) {
 			char c = testOutputArray[i];
+			//Parse the final block of code from the test for completed vs failed
 			if(numFailures != 0 && recordedFailures == numFailures) {
 				if(pattern.contains("Test run finished after ")){
 					i = parseFinishedRun(testOutputArray,i,result);
 				}
 				pattern += c;
 			}
+			//search for certain patterns in our array from testOutput, patterns are determined by spaces or <
 			else if((c == ' '||c == '<')&& !pattern.isEmpty() && (numFailures == 0 ? true: numFailures != recordedFailures)) {
-				//check patterns
-				//if(pattern.contains("Failures"))System.out.print(pattern);
 				switch(pattern) {
 					case "Failures":
 						failed = true;
@@ -120,14 +129,25 @@ public class JDCR {
 		}
 		return result.toString();
 	}
-	
+	/*
+	 * Processes the final code block of a junit test for the completed and failed test sections
+	 * returns the current index when done
+	 * 
+	 * Looks through each result line which is denoted by []
+	 * 
+	 * Example Result Line
+	 * [         3 containers found      ]
+	 */
 	private static int parseFinishedRun(char[] testOutputArray, int index, StringBuilder results) {
 		boolean bracket = false;
 		String testItem = "",num = "";
 		int completed = 0, failed, total;
+		
 		while(index < testOutputArray.length) {
 			char c = testOutputArray[index];
+			//if we are looking at a new result line
 			if(c == '[' && !bracket)bracket = true;
+			//we've reached the end of the current result
 			else if(c == ']') {
 				bracket = false;
 				if(testItem.contains("tests successful")) {
@@ -143,6 +163,7 @@ public class JDCR {
 				num = "";
 				testItem = "";
 			}
+			//if we are in a result line look for any digits
 			else if(bracket) {
 				testItem += c;
 				if(Character.isDigit(c)) {
@@ -153,7 +174,23 @@ public class JDCR {
 		}
 		return index;
 	}
-	
+	/*
+	 * Parses either the expected or actual  output from testOutputArray into results. This is determined by 
+	 * the endingSequence String
+	 * 
+	 * removes [] from the strings if they are in them
+	 * 
+	 * Returns the current index position after parsing the output
+	 * 
+	 * Expected Output Example
+	 * 
+	 * Captures: "<[3, 3, 4, [6, 8][1, 2, 3, 5, 6, 7, 8, 9]]> but"
+	 * Stores: 3, 3, 4, 6, 8 1, 2, 3, 5, 6, 7, 8, 9
+	 * 
+	 * Actual Output Example
+	 * Captures: "<[3, 3, 4, [4, 4][1, 3, 6, 7, 8, 8, 8, 8]]>" + all other data until [...]
+	 * Stores:3, 3, 4, 4, 4 1, 3, 6, 7, 8, 8, 8, 8
+	 */
 	private static int parseTestResults(char[] testOutputArray, int index, StringBuilder results, String endingSequence) {
 		boolean carrot = false, complete = false;
 		String output = "";
@@ -164,11 +201,20 @@ public class JDCR {
 			else if(output.contains(endingSequence)) complete = true;
 			if(!complete)index++;
 		}
-		output = output.replace("<", "").substring(0,output.lastIndexOf(">"));//replace("> but ", "")
+		output = output.replace("<", "").substring(0,output.lastIndexOf(">"));
 		output = output.replaceAll("\\[", "").replaceAll("]", "");
 		results.append(output);
 		return index;
 	}
+	/*
+	 * Parses the method name of the test that was failed from testOutputArray into results.
+	 * 
+	 * Returns the current index position after parsing the output
+	 * 
+	 * the method name is always in the following pattern:
+	 * 
+	 * methodName = 'TestMethodName'
+	 */
 	private static int parseMethodName(char[] testOutputArray, int index, StringBuilder results) {
 		results.append("Method Name: ");
 		boolean quote = false, complete = false;
@@ -182,6 +228,15 @@ public class JDCR {
 		results.append("  ");
 		return index;
 	}
+	/*
+	 * Parses the number of failures reported and stores it in the temporary reference failures
+	 * 
+	 * returns the current index position after parsing
+	 * 
+	 * The number of failures is always reported as the following:
+	 * 
+	 * Failures (num_failures):
+	 */
 	private static int parseFailure(char[] testOutputArray, int index, StringBuilder failures) {
 		char c = testOutputArray[index];
 		while(c != ' ') {
