@@ -48,8 +48,6 @@ public class JDCR {
                 moveTestFile(a,2);
                 System.setOut(originalOut);
                 System.out.println(parseResults(bos.toString()));
-               
-
 			}
 			else {
 				compileAndRun(a);
@@ -96,14 +94,18 @@ public class JDCR {
 					case "expected:":
 						if(failed) {
 							pattern = "";
-							i = parseExpectedResults(testOutputArray,i,result);
+							result.append("Expected Output: ");
+							i = parseTestResults(testOutputArray,i,result, "> but");
+							result.append("  ");
 						}
 						break;
 					case "was:":
 						if(failed) {
 							pattern = "";
-							i = parseActualResults(testOutputArray,i,result);
+							result.append("Actual Output: ");
+							i = parseTestResults(testOutputArray,i,result,"[...]");
 							recordedFailures++;
+							result.append("\n");
 						}
 						break;
 					default:
@@ -152,38 +154,20 @@ public class JDCR {
 		return index;
 	}
 	
-	private static int parseActualResults(char[] testOutputArray, int index, StringBuilder results) {
-		results.append("Actual Output: ");
+	private static int parseTestResults(char[] testOutputArray, int index, StringBuilder results, String endingSequence) {
 		boolean carrot = false, complete = false;
 		String output = "";
 		while(!complete) {
 			char c = testOutputArray[index];
 			if(c == '<' && !carrot)carrot = true;
-			else if(carrot && !output.contains("[...]")) output+=c;
-			else if(output.contains("[...]")) complete = true;
-			index++;
-		}
-		output = output.replace("<", "").substring(0,output.lastIndexOf(">"));
-		output = output.replaceAll("\\[", "").replaceAll("]", "");
-		results.append(output+ "\n");
-		return index;
-	}
-	
-	private static int parseExpectedResults(char[] testOutputArray, int index, StringBuilder results) {
-		results.append("Expected Output: ");
-		boolean carrot = false, complete = false;
-		String output = "";
-		while(!complete) {
-			char c = testOutputArray[index];
-			if(c == '<' && !carrot)carrot = true;
-			else if(carrot && !output.contains("> but ")) output+=c;
-			else if(output.contains("> but ")) complete = true;
+			else if(carrot && !output.contains(endingSequence)) output+=c;
+			else if(output.contains(endingSequence)) complete = true;
 			if(!complete)index++;
 		}
-		output = output.replace("<", "").replace("> but ", "");
+		output = output.replace("<", "").substring(0,output.lastIndexOf(">"));//replace("> but ", "")
 		output = output.replaceAll("\\[", "").replaceAll("]", "");
-		results.append(output+ "  ");
-		return --index;
+		results.append(output);
+		return index;
 	}
 	private static int parseMethodName(char[] testOutputArray, int index, StringBuilder results) {
 		results.append("Method Name: ");
