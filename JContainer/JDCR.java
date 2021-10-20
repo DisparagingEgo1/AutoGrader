@@ -67,11 +67,14 @@ public class JDCR {
 	 */
 	private static String parseResults(String testOutput){
 		testOutput = testOutput.replaceAll("\n", " ");
+		if(testOutput.contains("Failures (")) {
+			testOutput = testOutput.substring(testOutput.indexOf("Failures ("));
+		}
+		else return "";
+		
 		char[] testOutputArray = testOutput.toCharArray();
 		String pattern = "";
 		StringBuilder result = new StringBuilder();
-		StringBuilder failures;
-		boolean failed = false;
 		int numFailures = 0, recordedFailures = 0;
 
 		for(int i = 0; i < testOutputArray.length;i++) {
@@ -87,31 +90,24 @@ public class JDCR {
 			else if((c == ' '||c == '<')&& !pattern.isEmpty() && (numFailures == 0 ? true: numFailures != recordedFailures)) {
 				switch(pattern) {
 					case "Failures":
-						failed = true;
-						failures = new StringBuilder();
+						StringBuilder failures = new StringBuilder();
 						i = parseFailure(testOutputArray,i+1,failures);
 						numFailures = Integer.parseInt(failures.toString());
 						failures = null;
 						break;
 					case "methodName":
-						if(failed) {
-							i = parseMethodName(testOutputArray,i+1,result);
-						}
+						i = parseMethodName(testOutputArray,i+1,result);
 						break;
 					case "expected:":
-						if(failed) {
-							result.append("Expected Output: ");
-							i = parseTestResults(testOutputArray,i,result, "> but");
-							result.append("  ");
-						}
+						result.append("Expected Output: ");
+						i = parseTestResults(testOutputArray,i,result, "> but");
+						result.append("  ");
 						break;
 					case "was:":
-						if(failed) {
-							result.append("Actual Output: ");
-							i = parseTestResults(testOutputArray,i,result,"[...]");
-							recordedFailures++;
-							result.append("\n");
-						}
+						result.append("Actual Output: ");
+						i = parseTestResults(testOutputArray,i,result,"[...]");
+						recordedFailures++;
+						result.append("\n");
 						break;
 				}
 				pattern = "";
