@@ -88,7 +88,6 @@ public class JDCR {
 				switch(pattern) {
 					case "Failures":
 						failed = true;
-						pattern = "";
 						failures = new StringBuilder();
 						i = parseFailure(testOutputArray,i+1,failures);
 						numFailures = Integer.parseInt(failures.toString());
@@ -96,13 +95,11 @@ public class JDCR {
 						break;
 					case "methodName":
 						if(failed) {
-							pattern = "";
 							i = parseMethodName(testOutputArray,i+1,result);
 						}
 						break;
 					case "expected:":
 						if(failed) {
-							pattern = "";
 							result.append("Expected Output: ");
 							i = parseTestResults(testOutputArray,i,result, "> but");
 							result.append("  ");
@@ -110,17 +107,14 @@ public class JDCR {
 						break;
 					case "was:":
 						if(failed) {
-							pattern = "";
 							result.append("Actual Output: ");
 							i = parseTestResults(testOutputArray,i,result,"[...]");
 							recordedFailures++;
 							result.append("\n");
 						}
 						break;
-					default:
-						pattern = "";
-						break;
 				}
+				pattern = "";
 			}
 			else if(!(c == ' ')) pattern += c;
 		}
