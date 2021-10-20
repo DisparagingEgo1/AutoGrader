@@ -1,5 +1,6 @@
 package JContainer;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
@@ -28,30 +29,185 @@ public class JDCR {
 	private static String jUnitTestPath;//path for junit testing file that will be run this session
 	private static ArrayList<ArrayList<String>> projectFiles = new ArrayList<ArrayList<String>>();//ArrayList containing ArrayLists of each student's project files
 	private static final boolean DEBUG = true;//disable needing command line arguments for testing
-	private static boolean TESTING = false;//Used when a junit test will be run
+	private static boolean TESTING = true;//Used when a junit test will be run
 		
 	
 	public static void main(String[] args)throws Exception {
 		//Setup
 		PrintStream originalOut = System.out;
+		ByteArrayOutputStream bos; 
 		parseArgs(args);
 		getProjectFiles(Paths.get(masterPath));
 		//attempt to compile and run each project
 		for(ArrayList<String> a: projectFiles) {
 			if(TESTING) {
-				//FileOutputStream f = new FileOutputStream(a.get(0) + "\\Results.txt");
-                //System.setOut(new PrintStream(f));
+				bos = new ByteArrayOutputStream();
+                System.setOut(new PrintStream(bos));
                 moveTestFile(a,1);
                 compileAndRun(a);
                 moveTestFile(a,2);
-                //modify Results.txt method here
-                //System.setOut(originalOut);
+                System.setOut(originalOut);
+                System.out.println(parseResults(bos.toString()));
+               
 
 			}
 			else {
 				compileAndRun(a);
 			}
 		}
+	}
+	
+	private static String parseResults(String testOutput){
+		//testOutput = testOutput.substring(testOutput.indexOf("Failures"));
+		testOutput = testOutput.replaceAll("\n", " ");
+		char[] testOutputArray = testOutput.toCharArray();
+		String pattern = "";
+		StringBuilder result = new StringBuilder();
+		StringBuilder failures;
+		boolean  failed = false;
+		int numFailures = 0, recordedFailures = 0;
+
+		for(int i = 0; i < testOutputArray.length;i++) {
+			char c = testOutputArray[i];
+			if(numFailures != 0 && recordedFailures == numFailures) {
+				if(pattern.contains("Test run finished after ")){
+					i = parseFinishedRun(testOutputArray,i,result);
+				}
+				pattern += c;
+			}
+			else if((c == ' '||c == '<')&& !pattern.isEmpty() && (numFailures == 0 ? true: numFailures != recordedFailures)) {
+				//check patterns
+				//if(pattern.contains("Failures"))System.out.print(pattern);
+				switch(pattern) {
+					case "Failures":
+						failed = true;
+						pattern = "";
+						failures = new StringBuilder();
+						i = parseFailure(testOutputArray,i+1,failures);
+						numFailures = Integer.parseInt(failures.toString());
+						failures = null;
+						break;
+					case "methodName":
+						if(failed) {
+							pattern = "";
+							i = parseMethodName(testOutputArray,i+1,result);
+						}
+						break;
+					case "expected:":
+						if(failed) {
+							pattern = "";
+							i = parseExpectedResults(testOutputArray,i,result);
+						}
+						break;
+					case "was:":
+						if(failed) {
+							pattern = "";
+							i = parseActualResults(testOutputArray,i,result);
+							recordedFailures++;
+						}
+						break;
+					default:
+						pattern = "";
+						break;
+				}
+			}
+			else if(!(c == ' ')) pattern += c;
+		}
+		if(result.length() == 0) {
+			//no failures
+		}
+		return result.toString();
+	}
+	
+	private static int parseFinishedRun(char[] testOutputArray, int index, StringBuilder results) {
+		boolean bracket = false;
+		String testItem = "",num = "";
+		int completed = 0, failed, total;
+		while(index < testOutputArray.length) {
+			char c = testOutputArray[index];
+			if(c == '[' && !bracket)bracket = true;
+			else if(c == ']') {
+				bracket = false;
+				if(testItem.contains("tests successful")) {
+					results.append("Successful Tests: "+num+ "  ");
+					completed = Integer.parseInt(num);
+				}
+				else if(testItem.contains("tests failed")) {
+					results.append("Failed Tests: "+num+"  ");
+					failed = Integer.parseInt(num);
+					total = completed + failed;
+					results.append("Total Tests: "+ total);
+				}
+				num = "";
+				testItem = "";
+			}
+			else if(bracket) {
+				testItem += c;
+				if(Character.isDigit(c)) {
+					num += c;
+				}
+			}
+			index++;
+		}
+		return index;
+	}
+	
+	private static int parseActualResults(char[] testOutputArray, int index, StringBuilder results) {
+		results.append("Actual Output: ");
+		boolean carrot = false, complete = false;
+		String output = "";
+		while(!complete) {
+			char c = testOutputArray[index];
+			if(c == '<' && !carrot)carrot = true;
+			else if(carrot && !output.contains("[...]")) output+=c;
+			else if(output.contains("[...]")) complete = true;
+			index++;
+		}
+		output = output.replace("<", "").substring(0,output.lastIndexOf(">"));
+		output = output.replaceAll("\\[", "").replaceAll("]", "");
+		results.append(output+ "\n");
+		return index;
+	}
+	
+	private static int parseExpectedResults(char[] testOutputArray, int index, StringBuilder results) {
+		results.append("Expected Output: ");
+		boolean carrot = false, complete = false;
+		String output = "";
+		while(!complete) {
+			char c = testOutputArray[index];
+			if(c == '<' && !carrot)carrot = true;
+			else if(carrot && !output.contains("> but ")) output+=c;
+			else if(output.contains("> but ")) complete = true;
+			if(!complete)index++;
+		}
+		output = output.replace("<", "").replace("> but ", "");
+		output = output.replaceAll("\\[", "").replaceAll("]", "");
+		results.append(output+ "  ");
+		return --index;
+	}
+	private static int parseMethodName(char[] testOutputArray, int index, StringBuilder results) {
+		results.append("Method Name: ");
+		boolean quote = false, complete = false;
+		while(!complete) {
+			char c = testOutputArray[index];
+			if(c == '\''&&!quote)quote = true;
+			else if(quote && c == '\'')complete = true;
+			else if(quote)results.append(c);
+			index++;
+		}
+		results.append("  ");
+		return index;
+	}
+	private static int parseFailure(char[] testOutputArray, int index, StringBuilder failures) {
+		char c = testOutputArray[index];
+		while(c != ' ') {
+			if(c == '(');
+			else if(c == ')')return index;
+			else failures.append(c);
+			index++;
+			c = testOutputArray[index];
+		}
+		return index;
 	}
 	/*
 	 * If TESTING is true then this will move the testing file stored at jUnitTestPath into each
