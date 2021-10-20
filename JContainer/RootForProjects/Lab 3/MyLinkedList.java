@@ -26,7 +26,7 @@ public class MyLinkedList {
 	private MyLinkedList reverse(ListNode node) {
 		if(node == null) return new MyLinkedList();
 		MyLinkedList list = reverse(node.next);
-		list.addFirst(node.data);//FOR JDCR TESTING: should be list.addLast(node.data);
+		list.addLast(node.data);//FOR JDCR TESTING: should be list.addLast(node.data);
 		return list;
 	}
 
@@ -39,7 +39,7 @@ public class MyLinkedList {
 	
 	private ListNode reverse(ListNode first, ListNode second) {
 		if(second == null) {
-			return second;//FOR JDCR TESTING: should be return first;
+			return first;//FOR JDCR TESTING: should be return first;
 		}
 		ListNode hd = reverse(first.next,second.next);
 		second.next = first;

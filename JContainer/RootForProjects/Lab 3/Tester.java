@@ -25,7 +25,7 @@ public class Tester {
 			case ' ':
 				return 1 + countSpace(str.substring(1));
 			default:
-				return 1+ countSpace(str.substring(1));//FOR JDCR TESTING: should be return countSpace(str.substring(1));
+				return countSpace(str.substring(1));//FOR JDCR TESTING: should be return countSpace(str.substring(1));
 		}
 
 	}
@@ -33,7 +33,7 @@ public class Tester {
 	public boolean myContains(String s1, String s2){
 		if(s1 == null || s1.isEmpty() || s2==null || s2.isEmpty()) return false;
 		if(s1.charAt(0) ==s2.charAt(0)) {
-			if(s1.length() == 1)return false;//FOR JDCR TESTING: should be if(s1.length() == 1)return true;
+			if(s1.length() == 1)return true;//FOR JDCR TESTING: should be if(s1.length() == 1)return true;
 			if(myContains(s1.substring(1),s2.substring(1))) {
 				return true;
 			}
@@ -43,9 +43,9 @@ public class Tester {
 	}
 
 	public int div(int m, int n) throws Exception {
-		if(n == 0) throw new NullPointerException();//FOR JDCR TESTING: should be IllegalArgumentException
+		if(n == 0) throw new IllegalArgumentException();//FOR JDCR TESTING: should be IllegalArgumentException
 		if(m >= n) return 1 + div(m-n,n);
-		return 1;//FOR JDCR TESTING: should be 0 
+		return 0;//FOR JDCR TESTING: should be 0 
 	}
 	
 	public boolean isSum24(int arr[])
@@ -55,7 +55,7 @@ public class Tester {
 
 	private boolean isSum24(int arr[], int targetSum) {
 		if(arr.length == 0) return false;
-		if(arr.length == 1 && targetSum - arr[0] == 0)return false;//FOR JDCR TESTING: should be return true
+		if(arr.length == 1 && targetSum - arr[0] == 0)return true;//FOR JDCR TESTING: should be return true
 		if(arr.length == 1 && targetSum - arr[0] != 0) return false;
 		int[] sub= new int [arr.length-1];
 		for(int i = 0; i <arr.length-1;i++) {
@@ -72,7 +72,7 @@ public class Tester {
 	private void reverseArray(int a[], int low, int high) {
 		if(low >= high);
 		else {
-			int temp = a[high];//FOR JDCR TESTING: should be a[low]
+			int temp = a[low];//FOR JDCR TESTING: should be a[low]
 			a[low]= a[high];
 			a[high]=temp;
 			reverseArray(a, ++low,--high);
@@ -95,7 +95,7 @@ public class Tester {
 				}
 				if(smallest == low);
 				else {
-					int temp = a[high];//FOR JDCR TESTING: should be a[low]
+					int temp = a[low];//FOR JDCR TESTING: should be a[low]
 					a[low]=a[smallest];
 					a[smallest] = temp;
 				}

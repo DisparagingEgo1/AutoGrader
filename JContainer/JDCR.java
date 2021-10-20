@@ -67,16 +67,20 @@ public class JDCR {
 	 */
 	private static String parseResults(String testOutput){
 		testOutput = testOutput.replaceAll("\n", " ");
-		if(testOutput.contains("Failures (")) {
-			testOutput = testOutput.substring(testOutput.indexOf("Failures ("));
-		}
-		else return "";
-		
-		char[] testOutputArray = testOutput.toCharArray();
+
 		String pattern = "";
 		StringBuilder result = new StringBuilder();
 		int numFailures = 0, recordedFailures = 0;
 
+		if(testOutput.contains("Failures (")) {
+			testOutput = testOutput.substring(testOutput.indexOf("Failures ("));
+		}
+		else {
+			numFailures = -1; 
+			recordedFailures = -1;
+		}
+		char[] testOutputArray = testOutput.toCharArray();
+		
 		for(int i = 0; i < testOutputArray.length;i++) {
 			char c = testOutputArray[i];
 			//Parse the final block of code from the test for completed vs failed
