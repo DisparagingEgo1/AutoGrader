@@ -114,9 +114,6 @@ public class JDCR {
 			}
 			else if(!(c == ' ')) pattern += c;
 		}
-		if(result.length() == 0) {
-			//no failures
-		}
 		return result.toString();
 	}
 	/*
