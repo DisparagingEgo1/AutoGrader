@@ -1,22 +1,29 @@
 package JContainer;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.nio.file.DirectoryIteratorException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /*  Java Dynamic Compile and Run
  * 
  * -Notes: Must add your jdk/bin path to the System Path variable, otherwise the isExecutable() function
  * 		   will not work.
  * 
- * TO-DO: Tristan: File and Testing Output for each project. 
+ * TO-DO: Tristan: File and Testing Output for each project. //Need to fix comments bug, find total, and refactor code for WET code
  * 		  Trace: Gui
  * 		  Unassigned/Undecided: Simply Gui for uploading files to a server, Output graded test results to csv file in root(folder_name,Homework2,score)Flexibility to add more. Constant java
  * 								file that holds all the constants. Enhanced Command Line abilities such as setting default paths, reading an arguments file, setting debug/testing
@@ -27,6 +34,8 @@ public class JDCR {
 	private static String root;//Name of Root Folder
 	private static String jUnitJarPath;//path to junit.jar
 	private static String jUnitTestPath;//path for junit testing file that will be run this session
+	private static String grade;// Used to store grade
+	private static String comment = ""; //Used to hold comments about code
 	private static ArrayList<ArrayList<String>> projectFiles = new ArrayList<ArrayList<String>>();//ArrayList containing ArrayLists of each student's project files
 	private static final boolean DEBUG = true;//disable needing command line arguments for testing
 	private static boolean TESTING = true;//Used when a junit test will be run
@@ -38,6 +47,7 @@ public class JDCR {
 		ByteArrayOutputStream bos; 
 		parseArgs(args);
 		getProjectFiles(Paths.get(masterPath));
+		setupCSV();
 		//attempt to compile and run each project
 		for(ArrayList<String> a: projectFiles) {
 			if(TESTING) {
@@ -48,6 +58,7 @@ public class JDCR {
                 moveTestFile(a,2);
                 System.setOut(originalOut);
                 System.out.println(parseResults(bos.toString()));
+                writeCSV(a.get(0), grade);
 			}
 			else {
 				compileAndRun(a);
@@ -65,13 +76,49 @@ public class JDCR {
 	 * 
 	 * Successful  Tests: #successful_tests  Failed Tests: #failed_tests  Total Tests: successful_tests + failed_tests
 	 */
+	private static void setupCSV() throws IOException {
+		FileWriter csvWriter = new FileWriter(new File(masterPath + "\\grades.csv"), true);
+		BufferedWriter test = new BufferedWriter(csvWriter);
+    	PrintWriter pw = new PrintWriter(test);
+    	pw.println("Name" + "," + "Assignment" + "," + "Grade" + "," + "Comments");
+    	pw.flush();
+    	pw.close();
+	}
+    private static void writeCSV(String fileRoot, String Grade) throws IOException {
+    	//Need to address improperly named folder names; Currently will work for folders named as stated in projects docs "GreeneTHW3"
+    	String[] fileSplit = fileRoot.split("\\\\");
+    	String projectName = fileSplit[fileSplit.length-1];
+    	Pattern p = Pattern.compile("(?i)HW");
+    	Matcher m = p.matcher(projectName);
+    	String name = null, homeworkNumber =null;
+    	
+    	if(m.find()) {
+    		String[] temp = projectName.split(m.group(0));
+    		name = temp[0];
+    		homeworkNumber = "HW" + temp[1];
+    	}
+    	
+    	FileWriter csvWriter = new FileWriter(new File(masterPath + "\\grades.csv"), true);
+    	BufferedWriter test = new BufferedWriter(csvWriter);
+    	PrintWriter pw = new PrintWriter(test);
+    	
+    	pw.println(name + "," + homeworkNumber + "," + grade + "," + comment);
+    	pw.flush();
+    	pw.close();
+    }
+    
 	private static String parseResults(String testOutput){
 		testOutput = testOutput.replaceAll("\n", " ");
 
 		String pattern = "";
 		StringBuilder result = new StringBuilder();
 		int numFailures = 0, recordedFailures = 0;
-
+		
+		if(testOutput.contains("Did Not Compile Successfully")) {
+			grade = "0";
+			comment = "Code did not compile";
+		}
+		
 		if(testOutput.contains("Failures (")) {
 			testOutput = testOutput.substring(testOutput.indexOf("Failures ("));
 		}
@@ -132,7 +179,8 @@ public class JDCR {
 	private static int parseFinishedRun(char[] testOutputArray, int index, StringBuilder results) {
 		boolean bracket = false;
 		String testItem = "",num = "";
-		int completed = 0, failed, total;
+		int completed = 0, failed, total = 0;
+		double gradeValue = 0;
 		
 		while(index < testOutputArray.length) {
 			char c = testOutputArray[index];
@@ -151,6 +199,13 @@ public class JDCR {
 					total = completed + failed;
 					results.append("Total Tests: "+ total);
 				}
+				
+				if(completed == 0) {
+					grade = "0";
+				} else
+					gradeValue = (double) completed/total * 100;
+					grade = String.valueOf(gradeValue);
+					
 				num = "";
 				testItem = "";
 			}
