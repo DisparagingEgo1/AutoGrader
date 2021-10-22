@@ -412,8 +412,10 @@ public class JDCR {
 	 * Returns the resulting output from stdout and stderr
 	 */
 	private static String[] execute(String[]args) throws IOException {
+		String out;
 		Process proc = Runtime.getRuntime().exec(args);
-    	String out = getOutput("File Output",new BufferedReader(new InputStreamReader(proc.getInputStream())));
+    	if(!args[0].equals("javac")) out = getOutput("File Output",new BufferedReader(new InputStreamReader(proc.getInputStream())));
+    	else out = "";
     	String err = getOutput("Error Output",new BufferedReader(new InputStreamReader(proc.getErrorStream())));
     	proc.destroy();
     	return new String[] {out,err};

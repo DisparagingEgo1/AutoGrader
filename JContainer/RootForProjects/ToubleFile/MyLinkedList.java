@@ -31,10 +31,12 @@ public class MyLinkedList {
 	}
 
 	public void reverse2() {
+   /*
 		if(this.size <= 1);
 		else {
 			this.head.next = reverse(this.head.next, this.head.next.next);
 		}
+      */
 	}
 	
 	private ListNode reverse(ListNode first, ListNode second) {

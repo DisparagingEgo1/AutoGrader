@@ -68,16 +68,17 @@ public class Tester {
 	public void reverseArray(int a[]) {
 		reverseArray(a, 0, a.length - 1);
 	}
-	
-	private void reverseArray(int a[], int low, int high) {
-		if(low >= high);
+	/*
+   if(low >= high);
 		else {
 			int temp = a[low];//FOR JDCR TESTING: should be a[low]
 			a[low]= a[high];
 			a[high]=temp;
 			reverseArray(a, ++low,--high);
 		}
-
+   */
+	private void reverseArray(int a[], int low, int high) {
+		}
 	}
 	
 
