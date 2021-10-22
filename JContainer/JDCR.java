@@ -4,11 +4,13 @@ import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryIteratorException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -36,6 +38,8 @@ public class JDCR {
 	private static String jUnitTestPath;//path for junit testing file that will be run this session
 	private static String grade;// Used to store grade
 	private static String comment = ""; //Used to hold comments about code
+	private static int pointsPerMethod;
+	private static int totalPoints;
 	private static ArrayList<ArrayList<String>> projectFiles = new ArrayList<ArrayList<String>>();//ArrayList containing ArrayLists of each student's project files
 	private static final boolean DEBUG = true;//disable needing command line arguments for testing
 	private static boolean TESTING = true;//Used when a junit test will be run
@@ -43,6 +47,7 @@ public class JDCR {
 	
 	public static void main(String[] args)throws Exception {
 		//Setup
+		getMethodPoints();
 		PrintStream originalOut = System.out;
 		ByteArrayOutputStream bos; 
 		parseArgs(args);
@@ -76,11 +81,25 @@ public class JDCR {
 	 * 
 	 * Successful  Tests: #successful_tests  Failed Tests: #failed_tests  Total Tests: successful_tests + failed_tests
 	 */
+	private static void getMethodPoints() throws IOException {
+		String temp = Files.readString(Paths.get(".\\JContainer\\config.txt"), StandardCharsets.US_ASCII);
+		Pattern p = Pattern.compile("\\d");
+    	Matcher m = p.matcher(temp);
+    	String tempHolderString = null;
+    	
+		if(m.find()) {
+			tempHolderString = m.group(0);
+		}
+		
+		pointsPerMethod = Integer.parseInt(tempHolderString);
+	}
+	
+	
 	private static void setupCSV() throws IOException {
 		FileWriter csvWriter = new FileWriter(new File(masterPath + "\\grades.csv"), true);
 		BufferedWriter test = new BufferedWriter(csvWriter);
     	PrintWriter pw = new PrintWriter(test);
-    	pw.println("Name" + "," + "Assignment" + "," + "Grade" + "," + "Comments");
+    	pw.println("Name" + "," + "Assignment" + "," + "Grade %" + "," + "Total Points" + "," + "Comments");
     	pw.flush();
     	pw.close();
 	}
@@ -88,21 +107,21 @@ public class JDCR {
     	//Need to address improperly named folder names; Currently will work for folders named as stated in projects docs "GreeneTHW3"
     	String[] fileSplit = fileRoot.split("\\\\");
     	String projectName = fileSplit[fileSplit.length-1];
-    	Pattern p = Pattern.compile("(?i)HW");
+    	Pattern p = Pattern.compile("(?i)HW\\d");
     	Matcher m = p.matcher(projectName);
     	String name = null, homeworkNumber =null;
     	
     	if(m.find()) {
     		String[] temp = projectName.split(m.group(0));
     		name = temp[0];
-    		homeworkNumber = "HW" + temp[1];
+    		homeworkNumber = m.group(0);
     	}
     	
     	FileWriter csvWriter = new FileWriter(new File(masterPath + "\\grades.csv"), true);
     	BufferedWriter test = new BufferedWriter(csvWriter);
     	PrintWriter pw = new PrintWriter(test);
     	
-    	pw.println(name + "," + homeworkNumber + "," + grade + "," + comment);
+    	pw.println(name + "," + homeworkNumber + "," + grade + "," + totalPoints + "," + comment);
     	pw.flush();
     	pw.close();
     }
@@ -116,7 +135,10 @@ public class JDCR {
 		
 		if(testOutput.contains("Did Not Compile Successfully")) {
 			grade = "0";
+			totalPoints = 0;
 			comment = "Code did not compile";
+		} else {
+			comment = "";
 		}
 		
 		if(testOutput.contains("Failures (")) {
@@ -202,9 +224,11 @@ public class JDCR {
 				
 				if(completed == 0) {
 					grade = "0";
+					totalPoints = 0;
 				} else
 					gradeValue = (double) completed/total * 100;
 					grade = String.valueOf(gradeValue);
+					totalPoints = pointsPerMethod * completed;
 					
 				num = "";
 				testItem = "";
